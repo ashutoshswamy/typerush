@@ -1,26 +1,297 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Signal — default. Blue-black ink, not neutral gray; two functional
+   accents (teal for signal/cursor, rust for error) instead of one neon
+   accent on black. No rounded corners — this reads as instrument, not card. */
+:root,
+[data-theme="signal"] {
+  --bg: #10131a;
+  --main: #34d1c4;
+  --sub: #4a5164;
+  --sub-alt: #171b24;
+  --text: #f3f1ea;
+  --error: #d9614c;
+  --error-extra: #b73f2d;
+  --caret: #34d1c4;
+}
+
+[data-theme="dracula"] {
+  --bg: #1e1f29;
+  --main: #ff79c6;
+  --sub: #6272a4;
+  --sub-alt: #282a3a;
+  --text: #f8f8f2;
+  --error: #ff5555;
+  --error-extra: #ff2222;
+  --caret: #ff79c6;
+}
+
+[data-theme="nord"] {
+  --bg: #2e3440;
+  --main: #88c0d0;
+  --sub: #4c566a;
+  --sub-alt: #3b4252;
+  --text: #eceff4;
+  --error: #bf616a;
+  --error-extra: #8f2d36;
+  --caret: #88c0d0;
+}
+
+[data-theme="monokai"] {
+  --bg: #272822;
+  --main: #a6e22e;
+  --sub: #75715e;
+  --sub-alt: #3e3d32;
+  --text: #f8f8f2;
+  --error: #f92672;
+  --error-extra: #ac1250;
+  --caret: #a6e22e;
+}
+
+[data-theme="solar"] {
+  --bg: #002b36;
+  --main: #b58900;
+  --sub: #586e75;
+  --sub-alt: #073642;
+  --text: #eee8d5;
+  --error: #dc322f;
+  --error-extra: #9c1e1c;
+  --caret: #b58900;
+}
+
+[data-theme="gruvbox"] {
+  --bg: #282828;
+  --main: #d79921;
+  --sub: #928374;
+  --sub-alt: #3c3836;
+  --text: #ebdbb2;
+  --error: #cc241d;
+  --error-extra: #9d0006;
+  --caret: #d79921;
+}
+
+[data-theme="tokyo"] {
+  --bg: #1a1b26;
+  --main: #7aa2f7;
+  --sub: #565f89;
+  --sub-alt: #24283b;
+  --text: #c0caf5;
+  --error: #f7768e;
+  --error-extra: #db4b4b;
+  --caret: #7aa2f7;
+}
+
+[data-theme="everforest"] {
+  --bg: #2d353b;
+  --main: #a7c080;
+  --sub: #859289;
+  --sub-alt: #343f44;
+  --text: #d3c6aa;
+  --error: #e67e80;
+  --error-extra: #c25a5a;
+  --caret: #a7c080;
+}
+
+[data-theme="catppuccin"] {
+  --bg: #1e1e2e;
+  --main: #cba6f7;
+  --sub: #6c7086;
+  --sub-alt: #313244;
+  --text: #cdd6f4;
+  --error: #f38ba8;
+  --error-extra: #eb6f92;
+  --caret: #cba6f7;
+}
+
+[data-theme="rosepine"] {
+  --bg: #191724;
+  --main: #ebbcba;
+  --sub: #6e6a86;
+  --sub-alt: #26233a;
+  --text: #e0def4;
+  --error: #eb6f92;
+  --error-extra: #b4637a;
+  --caret: #ebbcba;
+}
+
+[data-theme="onedark"] {
+  --bg: #282c34;
+  --main: #61afef;
+  --sub: #5c6370;
+  --sub-alt: #21252b;
+  --text: #abb2bf;
+  --error: #e06c75;
+  --error-extra: #be5046;
+  --caret: #61afef;
+}
+
+[data-theme="material"] {
+  --bg: #0f111a;
+  --main: #82aaff;
+  --sub: #4b526d;
+  --sub-alt: #191a21;
+  --text: #eeffff;
+  --error: #f07178;
+  --error-extra: #ff5370;
+  --caret: #82aaff;
+}
+
+[data-theme="ayu"] {
+  --bg: #0a0e14;
+  --main: #ffb454;
+  --sub: #4d5566;
+  --sub-alt: #131721;
+  --text: #b3b1ad;
+  --error: #ff3333;
+  --error-extra: #d95757;
+  --caret: #ffb454;
+}
+
+[data-theme="nightowl"] {
+  --bg: #011627;
+  --main: #82aaff;
+  --sub: #637777;
+  --sub-alt: #0b2942;
+  --text: #d6deeb;
+  --error: #ef5350;
+  --error-extra: #ff6363;
+  --caret: #7fdbca;
+}
+
+[data-theme="synthwave"] {
+  --bg: #262335;
+  --main: #ff7edb;
+  --sub: #848bbd;
+  --sub-alt: #34294f;
+  --text: #f4eee4;
+  --error: #fe4450;
+  --error-extra: #f97e72;
+  --caret: #ff7edb;
+}
+
+[data-theme="cobalt"] {
+  --bg: #193549;
+  --main: #ffc600;
+  --sub: #6d8299;
+  --sub-alt: #15232d;
+  --text: #e6e6e6;
+  --error: #ff628c;
+  --error-extra: #ff2f6e;
+  --caret: #ffc600;
+}
+
+[data-theme="palenight"] {
+  --bg: #292d3e;
+  --main: #c792ea;
+  --sub: #676e95;
+  --sub-alt: #1b1e2b;
+  --text: #a6accd;
+  --error: #f07178;
+  --error-extra: #ff5370;
+  --caret: #c792ea;
+}
+
+[data-theme="horizon"] {
+  --bg: #1c1e26;
+  --main: #e95678;
+  --sub: #6c6f93;
+  --sub-alt: #232530;
+  --text: #d5d8da;
+  --error: #ff6b6b;
+  --error-extra: #d64550;
+  --caret: #fab795;
+}
+
+[data-theme="kanagawa"] {
+  --bg: #1f1f28;
+  --main: #7e9cd8;
+  --sub: #54546d;
+  --sub-alt: #16161d;
+  --text: #dcd7ba;
+  --error: #e46876;
+  --error-extra: #c34043;
+  --caret: #7e9cd8;
+}
+
+[data-theme="github"] {
+  --bg: #0d1117;
+  --main: #58a6ff;
+  --sub: #6e7681;
+  --sub-alt: #161b22;
+  --text: #c9d1d9;
+  --error: #f85149;
+  --error-extra: #da3633;
+  --caret: #58a6ff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bg: var(--bg);
+  --color-main: var(--main);
+  --color-sub: var(--sub);
+  --color-sub-alt: var(--sub-alt);
+  --color-text: var(--text);
+  --color-error: var(--error);
+  --color-error-extra: var(--error-extra);
+  --color-caret: var(--caret);
+  --font-ui: var(--font-geist-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-display: var(--font-big-shoulders);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui), sans-serif;
+  position: relative;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The typing area's own type — this is the app's load-bearing signature,
+   not the chrome around it. UI text stays on --font-ui by default. */
+.font-test {
+  font-family: var(--font-mono), monospace;
+}
+
+/* Big, condensed, scoreboard-like — reserved for the results reveal and
+   page headings. Never used for body copy. */
+.font-display {
+  font-family: var(--font-display), sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Faint calibration-grid texture behind everything — kept minimal so the
+   test screen stays close to empty. */
+.grid-backdrop {
+  background-image:
+    linear-gradient(to right, var(--sub) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--sub) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.035;
+}
+
+:focus-visible {
+  outline: 2px solid var(--main);
+  outline-offset: 2px;
+}
+
+.graticule {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--sub) 0,
+    var(--sub) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  background-position: bottom;
+  background-size: 8px 1px;
+  background-repeat: repeat-x;
+  opacity: 0.35;
+  height: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }

@@ -1,0 +1,141 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Download, Trash2, TriangleAlert, X } from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { exportUserData } from "@/lib/firestore";
+import { Panel } from "./Panel";
+
+export function DangerZone({ uid, username }: { uid: string; username: string }) {
+  const { user, deleteAccount } = useAuth();
+  const router = useRouter();
+
+  const [exporting, setExporting] = useState(false);
+  const [armed, setArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [passwordRequired, setPasswordRequired] = useState(false);
+  const [password, setPassword] = useState("");
+  const isPasswordAccount = user?.providerData[0]?.providerId === "password";
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const data = await exportUserData(uid);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `typerush-${username}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!armed) {
+      setArmed(true);
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      await deleteAccount(passwordRequired ? password : undefined);
+      router.push("/");
+    } catch (err) {
+      console.warn("delete account failed:", err);
+      const code = (err as { code?: string }).code;
+      if (code === "auth/requires-recent-login" && isPasswordAccount && !passwordRequired) {
+        // First attempt without a password — ask for it inline instead of
+        // forcing a full sign-out/sign-in round trip.
+        setPasswordRequired(true);
+        setDeleting(false);
+        return;
+      }
+      setError(
+        code === "auth/requires-recent-login"
+          ? "Reauthentication was cancelled — try deleting again to confirm your identity."
+          : code === "permission-denied"
+            ? "Firestore rules on the live project don't allow this yet — deploy firestore.rules and retry."
+            : code === "auth/wrong-password" || code === "auth/invalid-credential"
+              ? "That password's wrong — try again."
+              : `Couldn't delete account: ${err instanceof Error ? err.message : String(err)}`
+      );
+      setArmed(false);
+      setDeleting(false);
+      setPasswordRequired(false);
+      setPassword("");
+    }
+  }
+
+  return (
+    <Panel className="flex flex-col gap-4 px-5 py-5">
+      <h2 className="flex items-center gap-1.5 text-error text-xs tracking-[0.15em] uppercase">
+        <TriangleAlert size={14} aria-hidden="true" />
+        danger zone
+      </h2>
+
+      <div className="flex flex-col gap-1.5">
+        <p className="text-sub text-sm">Download every test result, personal best, and profile field as JSON.</p>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
+        >
+          <Download size={13} aria-hidden="true" />
+          {exporting ? "preparing…" : "export my data"}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-1.5 border-t border-sub/15 pt-4">
+        <p className="text-sub text-sm">
+          Deletes your account, test history, personal bests, and leaderboard entries. This can&rsquo;t be undone
+          — export first if you want to keep a copy.
+        </p>
+        {passwordRequired && (
+          <input
+            type="password"
+            autoFocus
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="confirm your password"
+            className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-error w-64"
+          />
+        )}
+        <button
+          onClick={handleDelete}
+          disabled={deleting || (passwordRequired && !password)}
+          className={`flex items-center gap-1.5 text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50 ${
+            armed ? "bg-error text-bg px-3 py-2" : "text-error hover:underline"
+          }`}
+        >
+          <Trash2 size={13} aria-hidden="true" />
+          {deleting
+            ? "deleting…"
+            : passwordRequired
+              ? "confirm password — delete everything"
+              : armed
+                ? "confirm — delete everything"
+                : "delete my account"}
+        </button>
+        {armed && !deleting && (
+          <button
+            onClick={() => {
+              setArmed(false);
+              setPasswordRequired(false);
+              setPassword("");
+            }}
+            className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
+          >
+            <X size={13} aria-hidden="true" />
+            cancel
+          </button>
+        )}
+        {error && <p className="text-error text-xs">{error}</p>}
+      </div>
+    </Panel>
+  );
+}
