@@ -61,13 +61,13 @@ export function TestArea() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "Tab") {
+      if (e.key === "Enter" && e.shiftKey) {
         e.preventDefault();
         useEngine.getState().restart();
         setLineOffset(0);
         return;
       }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (status === "finished") return;
       if (e.key === "Backspace") {
         e.preventDefault();
@@ -139,7 +139,7 @@ export function TestArea() {
         <Oscilloscope samples={wpmTimeline} height={40} />
       </div>
 
-      <p className="text-sub text-xs tracking-[0.2em] uppercase">tab — restart</p>
+      <p className="text-sub text-xs tracking-[0.2em] uppercase">shift+enter — restart</p>
     </div>
   );
 }

@@ -21,11 +21,13 @@ export function Oscilloscope({
   const max = Math.max(...samples, 1);
   const lineRef = useRef<SVGPolylineElement>(null);
 
+  const pad = height * 0.067; // proportional padding, was fixed 8px — flattened small (history) charts vs the full-size results chart
+
   const points =
     samples.length >= 2
       ? samples.map((v, i) => {
           const x = (i / (samples.length - 1)) * width;
-          const y = height - (v / max) * (height - 8) - 4;
+          const y = height - (v / max) * (height - pad * 2) - pad;
           return `${x},${y}`;
         })
       : [`0,${height / 2}`, `${width},${height / 2}`];

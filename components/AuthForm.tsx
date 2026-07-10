@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LogIn } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa6";
 import { useAuth } from "./AuthProvider";
@@ -51,19 +52,35 @@ export function AuthForm() {
   }
 
   return (
-    <Panel className="flex flex-col gap-4 max-w-xs px-6 py-5">
-      <div className="flex gap-4 text-xs tracking-[0.15em] uppercase text-sub">
+    <Panel className="flex flex-col gap-4 w-full max-w-xs px-6 py-5">
+      <div className="flex gap-5 text-xs tracking-[0.15em] uppercase text-sub border-b border-sub/15">
         <button
           onClick={() => setMode("signin")}
-          className={mode === "signin" ? "text-main" : "hover:text-text"}
+          className={`relative pb-2 transition-colors ${mode === "signin" ? "text-main" : "hover:text-text"}`}
         >
           sign in
+          {mode === "signin" && (
+            <motion.span
+              layoutId="authform-tab-underline"
+              className="absolute -bottom-px left-0 right-0 h-px bg-main"
+              style={{ boxShadow: "0 0 4px var(--main)" }}
+              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            />
+          )}
         </button>
         <button
           onClick={() => setMode("signup")}
-          className={mode === "signup" ? "text-main" : "hover:text-text"}
+          className={`relative pb-2 transition-colors ${mode === "signup" ? "text-main" : "hover:text-text"}`}
         >
           sign up
+          {mode === "signup" && (
+            <motion.span
+              layoutId="authform-tab-underline"
+              className="absolute -bottom-px left-0 right-0 h-px bg-main"
+              style={{ boxShadow: "0 0 4px var(--main)" }}
+              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            />
+          )}
         </button>
       </div>
 
@@ -94,34 +111,55 @@ export function AuthForm() {
           minLength={6}
           required
         />
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           type="submit"
           disabled={busy}
           className="flex items-center justify-center gap-1.5 bg-main text-bg px-3 py-2 text-xs tracking-[0.15em] uppercase font-medium disabled:opacity-50"
         >
           <LogIn size={14} aria-hidden="true" />
           {mode === "signup" ? "create account" : "sign in"}
-        </button>
+        </motion.button>
       </form>
 
-      <button
+      <div className="flex items-center gap-3 text-sub/50 text-[10px] tracking-[0.15em] uppercase">
+        <span className="graticule flex-1" aria-hidden="true" />
+        or
+        <span className="graticule flex-1" aria-hidden="true" />
+      </div>
+
+      <motion.button
+        whileTap={{ scale: 0.97 }}
         onClick={() => withPopup(signInWithGoogle)}
         disabled={busy}
         className="flex items-center justify-center gap-1.5 border border-sub/40 px-3 py-2 text-xs tracking-[0.15em] uppercase hover:text-main hover:border-main disabled:opacity-50"
       >
         <FaGoogle size={13} aria-hidden="true" />
         continue with Google
-      </button>
-      <button
+      </motion.button>
+      <motion.button
+        whileTap={{ scale: 0.97 }}
         onClick={() => withPopup(signInWithGithub)}
         disabled={busy}
         className="flex items-center justify-center gap-1.5 border border-sub/40 px-3 py-2 text-xs tracking-[0.15em] uppercase hover:text-main hover:border-main disabled:opacity-50"
       >
         <FaGithub size={14} aria-hidden="true" />
         continue with GitHub
-      </button>
+      </motion.button>
 
-      {error && <p className="text-error text-xs">{error}</p>}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, x: 0 }}
+            animate={{ opacity: 1, x: [0, -6, 6, -4, 4, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-error text-xs"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </Panel>
   );
 }

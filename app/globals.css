@@ -224,6 +224,228 @@
   --caret: #58a6ff;
 }
 
+/* Light group — same --error/--caret contract, inverted luminance. Errors
+   stay a bit darker/more saturated here so they hold contrast on a pale bg. */
+[data-theme="paper"] {
+  --bg: #f5f2ea;
+  --main: #2f6f4f;
+  --sub: #8a8577;
+  --sub-alt: #e9e4d8;
+  --text: #2b2b26;
+  --error: #b3261e;
+  --error-extra: #7a1a15;
+  --caret: #2f6f4f;
+}
+
+[data-theme="daylight"] {
+  --bg: #f7f9fc;
+  --main: #2563eb;
+  --sub: #7c8aa3;
+  --sub-alt: #e9edf5;
+  --text: #1a2233;
+  --error: #dc2626;
+  --error-extra: #991b1b;
+  --caret: #2563eb;
+}
+
+[data-theme="solarlight"] {
+  --bg: #fdf6e3;
+  --main: #268bd2;
+  --sub: #93a1a1;
+  --sub-alt: #eee8d5;
+  --text: #073642;
+  --error: #dc322f;
+  --error-extra: #cb4b16;
+  --caret: #268bd2;
+}
+
+[data-theme="linen"] {
+  --bg: #faf6f0;
+  --main: #b45309;
+  --sub: #a89f8f;
+  --sub-alt: #f0e9dd;
+  --text: #3d3527;
+  --error: #c0392b;
+  --error-extra: #922b21;
+  --caret: #b45309;
+}
+
+[data-theme="catppuccinlatte"] {
+  --bg: #eff1f5;
+  --main: #1e66f5;
+  --sub: #6c6f85;
+  --sub-alt: #e6e9ef;
+  --text: #4c4f69;
+  --error: #d20f39;
+  --error-extra: #e64553;
+  --caret: #1e66f5;
+}
+
+[data-theme="rosepinedawn"] {
+  --bg: #faf4ed;
+  --main: #907aa9;
+  --sub: #9893a5;
+  --sub-alt: #f2e9e1;
+  --text: #575279;
+  --error: #b4637a;
+  --error-extra: #d7827e;
+  --caret: #907aa9;
+}
+
+[data-theme="gruvboxlight"] {
+  --bg: #fbf1c7;
+  --main: #af3a03;
+  --sub: #7c6f64;
+  --sub-alt: #ebdbb2;
+  --text: #3c3836;
+  --error: #9d0006;
+  --error-extra: #cc241d;
+  --caret: #af3a03;
+}
+
+[data-theme="tokyolight"] {
+  --bg: #d5d6db;
+  --main: #34548a;
+  --sub: #9699a3;
+  --sub-alt: #cbccd1;
+  --text: #343b58;
+  --error: #8c4351;
+  --error-extra: #964c4c;
+  --caret: #34548a;
+}
+
+[data-theme="everforestlight"] {
+  --bg: #fdf6e3;
+  --main: #8da101;
+  --sub: #939f91;
+  --sub-alt: #efebd4;
+  --text: #5c6a72;
+  --error: #f85552;
+  --error-extra: #e66868;
+  --caret: #8da101;
+}
+
+[data-theme="ayulight"] {
+  --bg: #fafafa;
+  --main: #fa8d3e;
+  --sub: #828c99;
+  --sub-alt: #f0f0f0;
+  --text: #5c6166;
+  --error: #f51818;
+  --error-extra: #e65050;
+  --caret: #fa8d3e;
+}
+
+[data-theme="nightowllight"] {
+  --bg: #fbfbfb;
+  --main: #4876d6;
+  --sub: #90a7b2;
+  --sub-alt: #f0f0f0;
+  --text: #403f53;
+  --error: #de3d3b;
+  --error-extra: #ca4c4a;
+  --caret: #4876d6;
+}
+
+[data-theme="kanagawalotus"] {
+  --bg: #f2ecbc;
+  --main: #4d699b;
+  --sub: #a09cac;
+  --sub-alt: #e7dba0;
+  --text: #545464;
+  --error: #c84053;
+  --error-extra: #d7474b;
+  --caret: #4d699b;
+}
+
+[data-theme="githublight"] {
+  --bg: #f6f8fa;
+  --main: #0969da;
+  --sub: #6e7781;
+  --sub-alt: #eaeef2;
+  --text: #24292f;
+  --error: #cf222e;
+  --error-extra: #a40e26;
+  --caret: #0969da;
+}
+
+[data-theme="onelight"] {
+  --bg: #fafafa;
+  --main: #4078f2;
+  --sub: #a0a1a7;
+  --sub-alt: #eaeaeb;
+  --text: #383a42;
+  --error: #e45649;
+  --error-extra: #ca3a2e;
+  --caret: #4078f2;
+}
+
+[data-theme="materiallighter"] {
+  --bg: #fafafa;
+  --main: #6182b8;
+  --sub: #aabfc9;
+  --sub-alt: #eeeeee;
+  --text: #546e7a;
+  --error: #e53935;
+  --error-extra: #c62828;
+  --caret: #6182b8;
+}
+
+[data-theme="nordsnow"] {
+  --bg: #eceff4;
+  --main: #5e81ac;
+  --sub: #7b88a1;
+  --sub-alt: #e5e9f0;
+  --text: #2e3440;
+  --error: #bf616a;
+  --error-extra: #963c3c;
+  --caret: #5e81ac;
+}
+
+[data-theme="monokailight"] {
+  --bg: #fafafa;
+  --main: #6b9500;
+  --sub: #939293;
+  --sub-alt: #efefef;
+  --text: #49483e;
+  --error: #cd1a60;
+  --error-extra: #a01050;
+  --caret: #6b9500;
+}
+
+[data-theme="cobaltlight"] {
+  --bg: #f0f4f8;
+  --main: #0057a3;
+  --sub: #7d95ab;
+  --sub-alt: #dde6ee;
+  --text: #1a2b3c;
+  --error: #d1435b;
+  --error-extra: #a12e42;
+  --caret: #0057a3;
+}
+
+[data-theme="synthwavelight"] {
+  --bg: #f5eef8;
+  --main: #d6409f;
+  --sub: #9b8aad;
+  --sub-alt: #ecdff0;
+  --text: #33223f;
+  --error: #e0245e;
+  --error-extra: #a8123f;
+  --caret: #d6409f;
+}
+
+[data-theme="horizonlight"] {
+  --bg: #fdf0ed;
+  --main: #e95678;
+  --sub: #a68f89;
+  --sub-alt: #f6e2dd;
+  --text: #292520;
+  --error: #cc3e57;
+  --error-extra: #b91c47;
+  --caret: #e95678;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-main: var(--main);

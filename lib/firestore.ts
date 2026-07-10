@@ -49,7 +49,8 @@ export function configKey(mode: TestMode, config: TestConfig): string {
 export async function saveTestResult(
   uid: string,
   username: string,
-  input: TestResultInput
+  input: TestResultInput,
+  photoURL: string | null = null
 ): Promise<{ isNewBest: boolean }> {
   if (!db) throw new Error("Firestore not configured");
 
@@ -73,6 +74,7 @@ export async function saveTestResult(
     });
     batch.set(leaderboardRef, {
       username,
+      photoURL,
       wpm: input.wpmNet,
       achievedAt: serverTimestamp(),
     });
@@ -126,19 +128,36 @@ export async function getUserByUsername(username: string): Promise<UserProfile |
 export interface LeaderboardEntry {
   uid: string;
   username: string;
+  photoURL: string | null;
   wpm: number;
   achievedAt: Timestamp;
 }
 
+// Leaderboard entries are a WPM snapshot, written only when a user beats
+// their PB — username/photoURL on that doc go stale the moment the account
+// changes. Refresh both live from users/{uid} so the leaderboard always
+// shows the current account pfp, not whatever it looked like on PB day.
 export async function getLeaderboard(key: string, count = 50): Promise<LeaderboardEntry[]> {
   if (!db) return [];
+  const database = db;
   const q = query(
-    collection(db, "leaderboard", key, "entries"),
+    collection(database, "leaderboard", key, "entries"),
     orderBy("wpm", "desc"),
     limit(count)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ uid: d.id, ...(d.data() as Omit<LeaderboardEntry, "uid">) }));
+  const entries = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as Omit<LeaderboardEntry, "uid">) }));
+
+  const profiles = await Promise.all(
+    entries.map((e) => getDoc(doc(database, "users", e.uid)))
+  );
+
+  return entries.map((e, i) => {
+    const profile = profiles[i];
+    if (!profile.exists()) return e;
+    const data = profile.data() as { username?: string; photoURL?: string | null };
+    return { ...e, username: data.username ?? e.username, photoURL: data.photoURL ?? null };
+  });
 }
 
 export interface UserDataExport {
@@ -165,6 +184,31 @@ export async function exportUserData(uid: string): Promise<UserDataExport> {
     })),
     exportedAt: new Date().toISOString(),
   };
+}
+
+// Wipes test history, personal bests, and this user's leaderboard entries —
+// keeps the account and profile doc (username, photoURL, themePref) intact.
+export async function deleteAllTestData(uid: string): Promise<void> {
+  if (!db) throw new Error("Firestore not configured");
+  const database = db;
+
+  const [resultsSnap, bestsSnap] = await Promise.all([
+    getDocs(collection(database, "users", uid, "testResults")),
+    getDocs(collection(database, "users", uid, "personalBests")),
+  ]);
+
+  const refs = [
+    ...resultsSnap.docs.map((d) => d.ref),
+    ...bestsSnap.docs.map((d) => d.ref),
+    ...bestsSnap.docs.map((d) => doc(database, "leaderboard", d.id, "entries", uid)),
+  ];
+
+  // Firestore batches cap at 500 writes.
+  for (let i = 0; i < refs.length; i += 450) {
+    const batch = writeBatch(database);
+    refs.slice(i, i + 450).forEach((ref) => batch.delete(ref));
+    await batch.commit();
+  }
 }
 
 // Purges every Firestore doc owned by this uid: test history, personal

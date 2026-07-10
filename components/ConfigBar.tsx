@@ -1,8 +1,10 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Quote, Hash, Timer, Type, Leaf } from "lucide-react";
 import { useEngine } from "@/store/engine";
 import type { TestMode } from "@/lib/firestore";
+import { Checkbox } from "./Checkbox";
 
 const DURATIONS = [15, 30, 60, 120];
 const WORD_COUNTS = [10, 25, 50, 100];
@@ -25,27 +27,25 @@ export function ConfigBar() {
   }
 
   return (
-    <div
-      className={`flex flex-wrap items-center justify-center gap-5 text-xs tracking-[0.15em] uppercase text-sub transition-opacity ${
-        disabled ? "opacity-20 pointer-events-none" : "opacity-100"
+    <motion.div
+      animate={{ opacity: disabled ? 0.2 : 1 }}
+      transition={{ duration: 0.25 }}
+      className={`flex flex-wrap items-center justify-center gap-5 text-xs tracking-[0.15em] uppercase text-sub ${
+        disabled ? "pointer-events-none" : ""
       }`}
     >
       <label className="flex items-center gap-1.5 cursor-pointer">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={config.punctuation}
           onChange={(e) => configure(mode, { ...config, punctuation: e.target.checked })}
-          className="accent-[var(--main)]"
         />
         <Quote size={13} aria-hidden="true" />
         punctuation
       </label>
       <label className="flex items-center gap-1.5 cursor-pointer">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={config.numbers}
           onChange={(e) => configure(mode, { ...config, numbers: e.target.checked })}
-          className="accent-[var(--main)]"
         />
         <Hash size={13} aria-hidden="true" />
         numbers
@@ -89,6 +89,6 @@ export function ConfigBar() {
             {c}
           </button>
         ))}
-    </div>
+    </motion.div>
   );
 }

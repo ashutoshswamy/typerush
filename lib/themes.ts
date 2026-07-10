@@ -21,7 +21,31 @@ export const THEMES: ThemeName[] = [
   "horizon",
   "kanagawa",
   "github",
+  "paper",
+  "daylight",
+  "solarlight",
+  "linen",
+  "catppuccinlatte",
+  "rosepinedawn",
+  "gruvboxlight",
+  "tokyolight",
+  "everforestlight",
+  "ayulight",
+  "nightowllight",
+  "kanagawalotus",
+  "githublight",
+  "onelight",
+  "materiallighter",
+  "nordsnow",
+  "monokailight",
+  "cobaltlight",
+  "synthwavelight",
+  "horizonlight",
 ];
+
+// First 20 are dark, last 20 are light — split for grouped UI display.
+export const DARK_THEMES: ThemeName[] = THEMES.slice(0, 20);
+export const LIGHT_THEMES: ThemeName[] = THEMES.slice(20);
 
 // Mirrors the --main value of each [data-theme] block in globals.css, so a
 // swatch can preview the accent without switching themes to see it.
@@ -46,4 +70,24 @@ export const THEME_ACCENT: Record<ThemeName, string> = {
   horizon: "#e95678",
   kanagawa: "#7e9cd8",
   github: "#58a6ff",
+  paper: "#2f6f4f",
+  daylight: "#2563eb",
+  solarlight: "#268bd2",
+  linen: "#b45309",
+  catppuccinlatte: "#1e66f5",
+  rosepinedawn: "#907aa9",
+  gruvboxlight: "#af3a03",
+  tokyolight: "#34548a",
+  everforestlight: "#8da101",
+  ayulight: "#fa8d3e",
+  nightowllight: "#4876d6",
+  kanagawalotus: "#4d699b",
+  githublight: "#0969da",
+  onelight: "#4078f2",
+  materiallighter: "#6182b8",
+  nordsnow: "#5e81ac",
+  monokailight: "#6b9500",
+  cobaltlight: "#0057a3",
+  synthwavelight: "#d6409f",
+  horizonlight: "#e95678",
 };

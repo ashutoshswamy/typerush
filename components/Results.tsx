@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import { useEngine } from "@/store/engine";
 import { useAuth } from "./AuthProvider";
@@ -11,11 +12,11 @@ import { Oscilloscope } from "./Oscilloscope";
 import { Panel } from "./Panel";
 
 export function Results() {
-  const { status, results, mode, config, restart } = useEngine();
+  const { status, results, mode, config, restart, resultSaved, markResultSaved } = useEngine();
   const { user, configured } = useAuth();
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(resultSaved);
   const [isNewBest, setIsNewBest] = useState(false);
-  const savingRef = useRef(false);
+  const savingRef = useRef(resultSaved);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const wpmRef = useRef<HTMLSpanElement>(null);
@@ -23,24 +24,36 @@ export function Results() {
   const pbRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    // resultSaved lives in the store (not a local ref) so it survives a
+    // remount — e.g. navigating to /leaderboard and back to a still-"finished"
+    // result — without re-firing the save and writing a duplicate history doc.
     if (status !== "finished" || !results || !user || savingRef.current) return;
     savingRef.current = true;
-    saveTestResult(user.uid, user.displayName ?? "racer", {
-      mode,
-      config,
-      wpm: results.wpm,
-      wpmNet: results.wpmNet,
-      accuracy: results.accuracy,
-      consistency: results.consistency,
-      charStats: results.charStats,
-      wpmTimeline: results.wpmTimeline,
-    })
+    saveTestResult(
+      user.uid,
+      user.displayName ?? "racer",
+      {
+        mode,
+        config,
+        wpm: results.wpm,
+        wpmNet: results.wpmNet,
+        accuracy: results.accuracy,
+        consistency: results.consistency,
+        charStats: results.charStats,
+        wpmTimeline: results.wpmTimeline,
+      },
+      user.photoURL ?? null
+    )
       .then(({ isNewBest }) => {
         setSaved(true);
         setIsNewBest(isNewBest);
+        markResultSaved();
       })
-      .catch(() => setSaved(false));
-  }, [status, results, user, mode, config]);
+      .catch(() => {
+        setSaved(false);
+        savingRef.current = false;
+      });
+  }, [status, results, user, mode, config, markResultSaved]);
 
   // The one orchestrated moment in the app: WPM and accuracy count up,
   // the graph draws itself in (handled inside Oscilloscope), and a new
@@ -88,21 +101,37 @@ export function Results() {
 
   if (status !== "finished" || !results) return null;
 
+  const peak = results.wpmTimeline.length ? Math.max(...results.wpmTimeline) : results.wpm;
+
   return (
-    <div ref={rootRef} className="flex flex-col gap-8 w-full max-w-3xl mx-auto text-text">
-      <Panel className="px-6 pt-6 pb-2">
-        <div className="font-test text-[10px] tracking-[0.25em] uppercase text-sub mb-2">wpm trace</div>
+    <motion.div
+      ref={rootRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-6 w-full max-w-3xl mx-auto text-text"
+    >
+      <Panel className="px-6 pt-6 pb-4">
+        <div className="flex items-baseline justify-between mb-2">
+          <span className="font-test text-[10px] tracking-[0.25em] uppercase text-sub">wpm trace</span>
+          <span className="font-test text-[10px] tracking-[0.15em] uppercase text-sub tabular-nums">
+            peak <span className="text-main">{peak}</span>
+          </span>
+        </div>
         <Oscilloscope samples={results.wpmTimeline} height={120} strokeWidth={2} animate />
       </Panel>
 
-      <div className="flex gap-12 items-end">
-        <div>
+      <Panel className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-sub/15">
+        <div className="px-6 py-5 min-w-0">
           <div className="font-test text-sub text-xs tracking-[0.15em] uppercase">wpm</div>
-          <div className="font-display text-7xl text-main font-bold leading-none">
+          <div
+            className="font-display text-main font-bold leading-none mt-1 tabular-nums"
+            style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)" }}
+          >
             <span ref={wpmRef}>0</span>
           </div>
           {isNewBest && (
-            <div className="mt-1.5 flex items-center gap-1">
+            <div className="mt-2 flex items-center gap-1">
               <span
                 ref={pbRef}
                 className="block h-[2px] w-4 bg-main"
@@ -112,34 +141,46 @@ export function Results() {
             </div>
           )}
         </div>
-        <div>
+        <div className="px-6 py-5 min-w-0">
           <div className="font-test text-sub text-xs tracking-[0.15em] uppercase">accuracy</div>
-          <div className="font-display text-7xl text-main font-bold leading-none">
+          <div
+            className="font-display text-main font-bold leading-none mt-1 tabular-nums"
+            style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)" }}
+          >
             <span ref={accRef}>0</span>%
           </div>
         </div>
-        <div className="font-test grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs tracking-[0.1em] uppercase text-sub">
-          <span>consistency</span>
-          <span className="text-text tabular-nums">{results.consistency}%</span>
-          <span>raw</span>
-          <span className="text-text tabular-nums">{results.wpm}</span>
-          <span>correct / incorrect / extra / missed</span>
-          <span className="text-text tabular-nums">
-            {results.charStats.correct}/{results.charStats.incorrect}/{results.charStats.extra}/
-            {results.charStats.missed}
-          </span>
+        <div className="font-test px-6 py-5 min-w-0 flex flex-col justify-center gap-2.5 text-xs tracking-[0.1em] uppercase text-sub">
+          <div className="flex items-center justify-between gap-4">
+            <span>consistency</span>
+            <span className="text-text tabular-nums shrink-0">{results.consistency}%</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span>raw</span>
+            <span className="text-text tabular-nums shrink-0">{results.wpm}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>correct / incorrect / extra / missed</span>
+            <span className="text-text tabular-nums">
+              {results.charStats.correct} / {results.charStats.incorrect} / {results.charStats.extra} /{" "}
+              {results.charStats.missed}
+            </span>
+          </div>
         </div>
-      </div>
+      </Panel>
 
       <div className="font-test flex items-center gap-4 text-xs tracking-[0.1em] uppercase text-sub">
-        <button onClick={restart} className="flex items-center gap-1.5 text-main hover:underline">
+        <button
+          onClick={restart}
+          className="group flex items-center gap-2 border-2 border-main px-4 py-2 text-main transition-colors hover:bg-main hover:text-bg"
+        >
           <RotateCcw size={13} aria-hidden="true" />
-          restart — tab
+          restart — shift+enter
         </button>
         {!configured && <span>guest mode — sign in to save history</span>}
         {configured && !user && <span>sign in to save this result</span>}
         {configured && user && <span>{saved ? "saved to history" : "saving…"}</span>}
       </div>
-    </div>
+    </motion.div>
   );
 }

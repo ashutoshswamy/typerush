@@ -1,5 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { LogOut } from "lucide-react";
+import { FaGoogle, FaGithub } from "react-icons/fa6";
+import { Mail } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthForm } from "@/components/AuthForm";
 import { SettingsPanel } from "@/components/SettingsPanel";
@@ -7,10 +11,17 @@ import { Panel } from "@/components/Panel";
 import { DangerZone } from "@/components/DangerZone";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Avatar } from "@/components/Avatar";
+import { fadeUp, staggerContainer } from "@/lib/motion";
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
+
+const PROVIDER_META: Record<string, { icon: React.ElementType; label: string }> = {
+  "google.com": { icon: FaGoogle, label: "google" },
+  "github.com": { icon: FaGithub, label: "github" },
+  password: { icon: Mail, label: "email" },
+};
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
@@ -19,47 +30,70 @@ export default function AccountPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col gap-10 max-w-3xl mx-auto py-14 w-full">
-        <h1 className="font-display text-4xl text-text tracking-tight">Account</h1>
-        <AuthForm />
-      </div>
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={staggerContainer}
+        className="flex flex-col items-center text-center gap-8 max-w-md mx-auto py-24 w-full"
+      >
+        <motion.div variants={fadeUp} className="flex flex-col items-center gap-3">
+          <h1 className="font-display text-4xl sm:text-5xl text-text tracking-tight leading-none">Sign in to calibrate</h1>
+          <p className="text-sub text-sm max-w-sm">
+            History, personal bests, and theme calibration live behind your channel — sign in or open one to start logging runs.
+          </p>
+        </motion.div>
+        <motion.div variants={fadeUp} className="w-full flex justify-center">
+          <AuthForm />
+        </motion.div>
+      </motion.div>
     );
   }
 
   const memberSince = user.metadata.creationTime ? formatDate(new Date(user.metadata.creationTime)) : null;
+  const providerId = user.providerData[0]?.providerId ?? "password";
+  const provider = PROVIDER_META[providerId] ?? PROVIDER_META.password;
+  const ProviderIcon = provider.icon;
+  const serial = user.uid.slice(-6).toUpperCase();
 
   return (
-    <div className="flex flex-col gap-10 max-w-5xl mx-auto py-14 w-full">
-      <h1 className="font-display text-4xl text-text tracking-tight">Account</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-[20rem_1fr] gap-10 items-start">
-        <div className="flex flex-col gap-10">
-          <div>
-            <SectionLabel>identity</SectionLabel>
-            <Panel className="flex items-center gap-4 px-5 py-4">
-              <Avatar src={user.photoURL} label={user.displayName ?? user.email ?? "?"} />
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-text text-sm truncate">{user.displayName ?? user.email}</span>
-                {memberSince && (
-                  <span className="text-sub text-xs tracking-[0.08em] uppercase">racing since {memberSince}</span>
-                )}
-                <button onClick={() => signOut()} className="text-sub hover:text-main transition-colors text-xs tracking-[0.1em] uppercase w-fit mt-1">
-                  sign out
-                </button>
-              </div>
-            </Panel>
+    <motion.div initial="hidden" animate="show" variants={staggerContainer} className="flex flex-col gap-10 max-w-5xl mx-auto py-14 w-full">
+      {/* Spec plate — same instrument-ID-stamp language as the public profile's
+          identity block, so a signed-in user's own console reads as the same
+          rig they show the world, not a smaller consolation version of it. */}
+      <motion.div variants={fadeUp}>
+        <Panel className="flex flex-wrap items-center gap-6 sm:gap-10 px-6 py-6">
+          <Avatar src={user.photoURL} label={user.displayName ?? user.email ?? "?"} size={64} />
+          <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+            <h1 className="font-display text-4xl sm:text-5xl text-main tracking-tight truncate leading-none">
+              {user.displayName ?? user.email}
+            </h1>
+            <div className="font-test flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-[0.15em] uppercase text-sub">
+              {memberSince && <span>racing since {memberSince}</span>}
+              <span className="flex items-center gap-1.5">
+                <ProviderIcon size={11} aria-hidden="true" />
+                {provider.label}
+              </span>
+              <span>id·{serial}</span>
+            </div>
           </div>
+          <button
+            onClick={() => signOut()}
+            className="font-test flex items-center gap-1.5 text-sub hover:text-error transition-colors text-[11px] tracking-[0.15em] uppercase shrink-0"
+          >
+            <LogOut size={13} aria-hidden="true" />
+            sign out
+          </button>
+        </Panel>
+      </motion.div>
 
-          <div>
-            <DangerZone uid={user.uid} username={user.displayName ?? user.uid} />
-          </div>
-        </div>
+      <motion.div variants={fadeUp}>
+        <SectionLabel>calibration</SectionLabel>
+        <SettingsPanel />
+      </motion.div>
 
-        <div className="min-w-0">
-          <SectionLabel>calibration</SectionLabel>
-          <SettingsPanel />
-        </div>
-      </div>
-    </div>
+      <motion.div variants={fadeUp}>
+        <DangerZone uid={user.uid} username={user.displayName ?? user.uid} />
+      </motion.div>
+    </motion.div>
   );
 }

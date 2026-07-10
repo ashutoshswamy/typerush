@@ -32,6 +32,7 @@ interface EngineState {
   lastSampleMs: number; // elapsedMs at the last wpmTimeline sample
   lastSampleChars: number; // cumulative typed chars at the last sample
   results: EngineResults | null;
+  resultSaved: boolean; // guards against re-saving the same result on remount (e.g. nav away and back)
 
   configure: (mode: TestMode, config: TestConfig, wordTier?: WordTier) => void;
   type: (ch: string) => void;
@@ -39,6 +40,7 @@ interface EngineState {
   tick: () => void;
   finish: () => void;
   restart: () => void;
+  markResultSaved: () => void;
 }
 
 const WORD_BUFFER = 60;
@@ -68,6 +70,7 @@ export const useEngine = create<EngineState>((set, get) => ({
   lastSampleMs: 0,
   lastSampleChars: 0,
   results: null,
+  resultSaved: false,
 
   configure: (mode, config, wordTier = 200) => {
     const count = mode === "words" ? Math.max(config.wordCount ?? 25, WORD_BUFFER) : WORD_BUFFER;
@@ -88,6 +91,7 @@ export const useEngine = create<EngineState>((set, get) => ({
       lastSampleMs: 0,
       lastSampleChars: 0,
       results: null,
+      resultSaved: false,
     });
   },
 
@@ -182,16 +186,21 @@ export const useEngine = create<EngineState>((set, get) => ({
     // Sample once per elapsed second, and only over that second's delta —
     // a cumulative-average sample barely moves once the run is long, which
     // hides real bursts/slowdowns and skews the consistency score.
+    //
+    // tick() is rAF-driven, and a backgrounded/throttled tab can starve it
+    // for several seconds — catch up one second at a time (splitting the
+    // gap's chars evenly) instead of folding the whole gap into one
+    // oversized sample, so the timeline keeps its one-sample-per-second
+    // shape that the graph and consistency score assume.
     let wpmTimeline = s.wpmTimeline;
     let lastSampleMs = s.lastSampleMs;
     let lastSampleChars = s.lastSampleChars;
-    if (elapsedMs - lastSampleMs >= 1000) {
-      const deltaChars = typedSoFar - lastSampleChars;
-      const deltaSeconds = (elapsedMs - lastSampleMs) / 1000;
-      const sample = rawWpm(deltaChars, deltaSeconds);
-      wpmTimeline = [...s.wpmTimeline, sample];
-      lastSampleMs = elapsedMs;
-      lastSampleChars = typedSoFar;
+    while (elapsedMs - lastSampleMs >= 1000) {
+      const secondsInGap = Math.floor((elapsedMs - lastSampleMs) / 1000);
+      const charsPerSecond = (typedSoFar - lastSampleChars) / secondsInGap;
+      wpmTimeline = [...wpmTimeline, rawWpm(charsPerSecond, 1)];
+      lastSampleMs += 1000;
+      lastSampleChars += charsPerSecond;
     }
 
     set({ elapsedMs, wpmTimeline, lastSampleMs, lastSampleChars });
@@ -244,4 +253,6 @@ export const useEngine = create<EngineState>((set, get) => ({
     const s = get();
     get().configure(s.mode, s.config, s.wordTier);
   },
+
+  markResultSaved: () => set({ resultSaved: true }),
 }));

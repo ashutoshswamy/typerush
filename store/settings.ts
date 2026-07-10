@@ -21,7 +21,27 @@ export type ThemeName =
   | "palenight"
   | "horizon"
   | "kanagawa"
-  | "github";
+  | "github"
+  | "paper"
+  | "daylight"
+  | "solarlight"
+  | "linen"
+  | "catppuccinlatte"
+  | "rosepinedawn"
+  | "gruvboxlight"
+  | "tokyolight"
+  | "everforestlight"
+  | "ayulight"
+  | "nightowllight"
+  | "kanagawalotus"
+  | "githublight"
+  | "onelight"
+  | "materiallighter"
+  | "nordsnow"
+  | "monokailight"
+  | "cobaltlight"
+  | "synthwavelight"
+  | "horizonlight";
 export type CaretStyle = "line" | "block" | "underline";
 
 interface SettingsState {

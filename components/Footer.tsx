@@ -1,5 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { fadeIn } from "@/lib/motion";
+import { useSettings } from "@/store/settings";
+import { DARK_THEMES, LIGHT_THEMES } from "@/lib/themes";
 
 const DEV_LINKS = [
   { label: "GitHub", href: "https://github.com/ashutoshswamy", icon: FaGithub },
@@ -14,8 +21,18 @@ const SITE_LINKS = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  const { theme, setTheme } = useSettings();
+  if (pathname === "/type") return null;
+
   return (
-    <footer className="relative z-10 mt-auto">
+    <motion.footer
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+      variants={fadeIn}
+      className="relative z-10 mt-auto"
+    >
       <span className="graticule w-full block" aria-hidden="true" />
 
       <div className="max-w-4xl mx-auto px-6 py-12 grid grid-cols-2 sm:grid-cols-[1.3fr_1fr_1fr] gap-x-8 gap-y-10">
@@ -68,9 +85,35 @@ export function Footer() {
           <p className="font-test text-[10px] tracking-[0.1em] text-sub/60">
             © {new Date().getFullYear()} ashutoshswamy. All rights reserved.
           </p>
+          <div className="flex items-center gap-2">
+            <label htmlFor="footer-theme" className="font-test text-[10px] tracking-[0.1em] text-sub/60">
+              theme
+            </label>
+            <select
+              id="footer-theme"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value as (typeof DARK_THEMES)[number])}
+              className="bg-transparent border border-sub/30 text-sub hover:text-main focus:text-main focus:border-main transition-colors font-test text-[10px] tracking-[0.1em] px-2 py-1 outline-none capitalize"
+            >
+              <optgroup label="dark">
+                {DARK_THEMES.map((t) => (
+                  <option key={t} value={t} className="bg-bg text-text">
+                    {t}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="light">
+                {LIGHT_THEMES.map((t) => (
+                  <option key={t} value={t} className="bg-bg text-text">
+                    {t}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
           <p className="font-test text-[10px] tracking-[0.1em] text-sub/60">built by ashutoshswamy</p>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

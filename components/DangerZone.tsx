@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Download, Trash2, TriangleAlert, X } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { exportUserData } from "@/lib/firestore";
+import { exportUserData, deleteAllTestData } from "@/lib/firestore";
 import { Panel } from "./Panel";
 
 export function DangerZone({ uid, username }: { uid: string; username: string }) {
@@ -18,6 +19,31 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
   const isPasswordAccount = user?.providerData[0]?.providerId === "password";
+
+  const [dataArmed, setDataArmed] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
+  const [dataCleared, setDataCleared] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  async function handleClearData() {
+    if (!dataArmed) {
+      setDataArmed(true);
+      return;
+    }
+    setClearingData(true);
+    setDataError(null);
+    try {
+      await deleteAllTestData(uid);
+      setDataCleared(true);
+      setDataArmed(false);
+    } catch (err) {
+      console.warn("clear data failed:", err);
+      setDataError(`Couldn't clear data: ${err instanceof Error ? err.message : String(err)}`);
+      setDataArmed(false);
+    } finally {
+      setClearingData(false);
+    }
+  }
 
   async function handleExport() {
     setExporting(true);
@@ -92,20 +118,64 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
 
       <div className="flex flex-col gap-1.5 border-t border-sub/15 pt-4">
         <p className="text-sub text-sm">
+          Wipes test history, personal bests, and leaderboard entries. Your account and username stay — this
+          can&rsquo;t be undone.
+        </p>
+        <motion.button
+          variants={{ idle: { x: 0 }, armed: { x: [0, -5, 5, -3, 3, 0] } }}
+          animate={dataArmed ? "armed" : "idle"}
+          transition={{ duration: 0.35 }}
+          onClick={handleClearData}
+          disabled={clearingData}
+          className={`flex items-center gap-1.5 text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50 ${
+            dataArmed ? "bg-error text-bg px-3 py-2" : "text-error hover:underline"
+          }`}
+        >
+          <Trash2 size={13} aria-hidden="true" />
+          {clearingData ? "clearing…" : dataArmed ? "confirm — delete all data" : "delete all data"}
+        </motion.button>
+        <AnimatePresence>
+          {dataArmed && !clearingData && (
+            <motion.button
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDataArmed(false)}
+              className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
+            >
+              <X size={13} aria-hidden="true" />
+              cancel
+            </motion.button>
+          )}
+        </AnimatePresence>
+        {dataCleared && <p className="text-sub text-xs">All test data cleared.</p>}
+        {dataError && <p className="text-error text-xs">{dataError}</p>}
+      </div>
+
+      <div className="flex flex-col gap-1.5 border-t border-sub/15 pt-4">
+        <p className="text-sub text-sm">
           Deletes your account, test history, personal bests, and leaderboard entries. This can&rsquo;t be undone
           — export first if you want to keep a copy.
         </p>
-        {passwordRequired && (
-          <input
-            type="password"
-            autoFocus
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="confirm your password"
-            className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-error w-64"
-          />
-        )}
-        <button
+        <AnimatePresence>
+          {passwordRequired && (
+            <motion.input
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              type="password"
+              autoFocus
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="confirm your password"
+              className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-error w-64"
+            />
+          )}
+        </AnimatePresence>
+        <motion.button
+          variants={{ idle: { x: 0 }, armed: { x: [0, -5, 5, -3, 3, 0] } }}
+          animate={armed ? "armed" : "idle"}
+          transition={{ duration: 0.35 }}
           onClick={handleDelete}
           disabled={deleting || (passwordRequired && !password)}
           className={`flex items-center gap-1.5 text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50 ${
@@ -120,20 +190,25 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
               : armed
                 ? "confirm — delete everything"
                 : "delete my account"}
-        </button>
-        {armed && !deleting && (
-          <button
-            onClick={() => {
-              setArmed(false);
-              setPasswordRequired(false);
-              setPassword("");
-            }}
-            className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
-          >
-            <X size={13} aria-hidden="true" />
-            cancel
-          </button>
-        )}
+        </motion.button>
+        <AnimatePresence>
+          {armed && !deleting && (
+            <motion.button
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setArmed(false);
+                setPasswordRequired(false);
+                setPassword("");
+              }}
+              className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
+            >
+              <X size={13} aria-hidden="true" />
+              cancel
+            </motion.button>
+          )}
+        </AnimatePresence>
         {error && <p className="text-error text-xs">{error}</p>}
       </div>
     </Panel>
