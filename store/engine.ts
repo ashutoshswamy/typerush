@@ -13,12 +13,14 @@ export interface EngineResults {
   consistency: number;
   charStats: CharStats;
   wpmTimeline: number[];
+  elapsedSeconds: number;
 }
 
 interface EngineState {
   mode: TestMode;
   config: TestConfig;
   wordTier: WordTier;
+  fixedWordList: boolean; // race mode: words[] is shared with the opponent, never top up the buffer
   words: string[];
   typed: string[]; // locked-in typed text per completed/current word
   wordIndex: number;
@@ -34,7 +36,7 @@ interface EngineState {
   results: EngineResults | null;
   resultSaved: boolean; // guards against re-saving the same result on remount (e.g. nav away and back)
 
-  configure: (mode: TestMode, config: TestConfig, wordTier?: WordTier) => void;
+  configure: (mode: TestMode, config: TestConfig, wordTier?: WordTier, fixedWords?: string[]) => void;
   type: (ch: string) => void;
   backspace: () => void;
   tick: () => void;
@@ -57,7 +59,12 @@ export const useEngine = create<EngineState>((set, get) => ({
   mode: "time",
   config: { duration: 30, punctuation: false, numbers: false, language: "english" },
   wordTier: 200,
-  words: freshWords(WORD_BUFFER, { duration: 30, punctuation: false, numbers: false, language: "english" }, 200),
+  fixedWordList: false,
+  // Empty on init, not a random buffer — generating words at module scope
+  // runs once during SSR and again on client hydration with a different
+  // Math.random() sequence, which mismatches the server-rendered word spans.
+  // TestArea populates the real buffer client-side on mount instead.
+  words: [],
   typed: [""],
   wordIndex: 0,
   status: "idle",
@@ -72,13 +79,18 @@ export const useEngine = create<EngineState>((set, get) => ({
   results: null,
   resultSaved: false,
 
-  configure: (mode, config, wordTier = 200) => {
-    const count = mode === "words" ? Math.max(config.wordCount ?? 25, WORD_BUFFER) : WORD_BUFFER;
+  configure: (mode, config, wordTier = 200, fixedWords) => {
+    // A race lobby hands both racers the same word[] up front — the mode
+    // (time/words) stays whatever the host picked, but the buffer is fixed
+    // and never topped up, so both racers see identical words start to end.
+    const effectiveConfig = fixedWords && mode === "words" ? { ...config, wordCount: fixedWords.length } : config;
+    const count = effectiveConfig.wordCount ? Math.max(effectiveConfig.wordCount, WORD_BUFFER) : WORD_BUFFER;
     set({
       mode,
-      config,
+      config: effectiveConfig,
       wordTier,
-      words: freshWords(count, config, wordTier),
+      fixedWordList: Boolean(fixedWords),
+      words: fixedWords ?? freshWords(count, effectiveConfig, wordTier),
       typed: [""],
       wordIndex: 0,
       status: "idle",
@@ -121,7 +133,7 @@ export const useEngine = create<EngineState>((set, get) => ({
       const nextTyped = [...s.typed, ""];
       const nextWordIndex = s.wordIndex + 1;
       let nextWords = s.words;
-      if (s.mode !== "words" && nextWordIndex > s.words.length - 20) {
+      if (!s.fixedWordList && s.mode !== "words" && nextWordIndex > s.words.length - 20) {
         nextWords = [...s.words, ...freshWords(WORD_BUFFER, s.config, s.wordTier)];
       }
 
@@ -244,6 +256,7 @@ export const useEngine = create<EngineState>((set, get) => ({
       consistency: consistency(s.wpmTimeline),
       charStats: finalCharStats,
       wpmTimeline: s.wpmTimeline,
+      elapsedSeconds,
     };
 
     set({ status: "finished", charStats: finalCharStats, results });

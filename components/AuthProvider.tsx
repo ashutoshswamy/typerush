@@ -17,7 +17,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider, githubProvider, firebaseConfigured } from "@/lib/firebase";
-import { deleteUserData } from "@/lib/firestore";
+import { deleteUserData, sanitizeUsername } from "@/lib/firestore";
 
 interface AuthContextValue {
   user: User | null;
@@ -25,7 +25,7 @@ interface AuthContextValue {
   configured: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
-  signUpWithEmail: (email: string, password: string, username: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: (password?: string) => Promise<void>;
@@ -68,10 +68,12 @@ async function ensureUserDoc(user: User) {
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, {
-      username: user.displayName ?? user.email?.split("@")[0] ?? "racer",
+      username: sanitizeUsername(user.displayName ?? user.email?.split("@")[0] ?? "racer"),
       photoURL: user.photoURL ?? null,
       createdAt: serverTimestamp(),
-      themePref: "dracula",
+      themePref: "ayu",
+      xp: 0,
+      usernameSet: false, // provider-supplied name — UsernamePrompt asks them to confirm/change it
     });
   }
 }
@@ -95,14 +97,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     configured: firebaseConfigured,
     signInWithGoogle: () => popupSignIn(googleProvider),
     signInWithGithub: () => popupSignIn(githubProvider),
-    signUpWithEmail: async (email, password, username) => {
+    signUpWithEmail: async (email, password) => {
       if (!auth || !db) throw new Error("Firebase not configured");
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await setDoc(doc(db, "users", cred.user.uid), {
-        username,
+        username: sanitizeUsername(email.split("@")[0] ?? "racer"),
         photoURL: null,
         createdAt: serverTimestamp(),
-        themePref: "dracula",
+        themePref: "ayu",
+        xp: 0,
+        usernameSet: false, // no username collected at signup — UsernamePrompt asks right after
       });
     },
     signInWithEmail: async (email, password) => {

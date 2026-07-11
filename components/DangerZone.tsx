@@ -3,16 +3,42 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Trash2, TriangleAlert, X } from "lucide-react";
+import { Download, Trash2, TriangleAlert, X, FileSpreadsheet } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { exportUserData, deleteAllTestData } from "@/lib/firestore";
+import { exportUserData, deleteAllTestData, getRecentResults } from "@/lib/firestore";
 import { Panel } from "./Panel";
+import { PasswordInput } from "./PasswordInput";
+
+const CSV_COLUMNS = [
+  "date",
+  "mode",
+  "duration",
+  "wordCount",
+  "punctuation",
+  "numbers",
+  "language",
+  "wpm",
+  "wpmNet",
+  "accuracy",
+  "consistency",
+  "correct",
+  "incorrect",
+  "extra",
+  "missed",
+  "elapsedSeconds",
+] as const;
+
+function csvCell(value: unknown): string {
+  const s = String(value ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
 
 export function DangerZone({ uid, username }: { uid: string; username: string }) {
   const { user, deleteAccount } = useAuth();
   const router = useRouter();
 
   const [exporting, setExporting] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
   const [armed, setArmed] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +87,45 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
     }
   }
 
+  async function handleExportCsv() {
+    setExportingCsv(true);
+    try {
+      const results = await getRecentResults(uid, 5000);
+      const rows = results.map((r) =>
+        [
+          r.createdAt?.toDate?.().toISOString() ?? "",
+          r.mode,
+          r.config.duration ?? "",
+          r.config.wordCount ?? "",
+          r.config.punctuation,
+          r.config.numbers,
+          r.config.language,
+          r.wpm,
+          r.wpmNet,
+          r.accuracy,
+          r.consistency,
+          r.charStats.correct,
+          r.charStats.incorrect,
+          r.charStats.extra,
+          r.charStats.missed,
+          r.elapsedSeconds,
+        ]
+          .map(csvCell)
+          .join(",")
+      );
+      const csv = [CSV_COLUMNS.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `typerush-${username}-results.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExportingCsv(false);
+    }
+  }
+
   async function handleDelete() {
     if (!armed) {
       setArmed(true);
@@ -106,20 +171,30 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
 
       <div className="flex flex-col gap-1.5">
         <p className="text-sub text-sm">Download every test result, personal best, and profile field as JSON.</p>
-        <button
-          onClick={handleExport}
-          disabled={exporting}
-          className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
-        >
-          <Download size={13} aria-hidden="true" />
-          {exporting ? "preparing…" : "export my data"}
-        </button>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
+          >
+            <Download size={13} aria-hidden="true" />
+            {exporting ? "preparing…" : "export my data (json)"}
+          </button>
+          <button
+            onClick={handleExportCsv}
+            disabled={exportingCsv}
+            className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
+          >
+            <FileSpreadsheet size={13} aria-hidden="true" />
+            {exportingCsv ? "preparing…" : "export results (csv)"}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5 border-t border-sub/15 pt-4">
         <p className="text-sub text-sm">
-          Wipes test history, personal bests, and leaderboard entries. Your account and username stay — this
-          can&rsquo;t be undone.
+          Wipes test history, personal bests, race history, leaderboard entries, and resets xp/level back to zero.
+          Your account, username, and friends list stay — this can&rsquo;t be undone.
         </p>
         <motion.button
           variants={{ idle: { x: 0 }, armed: { x: [0, -5, 5, -3, 3, 0] } }}
@@ -159,17 +234,14 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
         </p>
         <AnimatePresence>
           {passwordRequired && (
-            <motion.input
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              type="password"
-              autoFocus
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="confirm your password"
-              className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-error w-64"
-            />
+              className="w-64"
+            >
+              <PasswordInput value={password} onChange={setPassword} placeholder="confirm your password" autoFocus />
+            </motion.div>
           )}
         </AnimatePresence>
         <motion.button

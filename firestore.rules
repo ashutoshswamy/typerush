@@ -1,10 +1,37 @@
 rules_version = '2';
 
 service cloud.firestore {
+  // A numeric stat field must either be untouched, only increase (the
+  // legitimate `increment()` path), or reset to exactly 0 (the "delete all
+  // data" path) — same anti-spoof shape used for xp/bestWpm/leaderboard wpm.
+  function ratchetOrReset(field) {
+    return !(field in request.resource.data) || !(field in resource.data)
+      || (request.resource.data[field] is number
+        && (request.resource.data[field] >= resource.data[field] || request.resource.data[field] == 0));
+  }
+
+  function usernameOk() {
+    return request.resource.data.username == resource.data.username
+      || (request.resource.data.username is string
+        && request.resource.data.username.matches("^[a-zA-Z0-9_]{3,20}$"));
+  }
+
   match /databases/{database}/documents {
     match /users/{uid} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.username is string
+        && request.resource.data.username.matches("^[a-zA-Z0-9_]{3,20}$");
+      // Numeric stats only ratchet up (or reset to 0); username must match
+      // the allowed charset whenever it changes; everything else on the
+      // profile the owner may freely rewrite.
+      allow update: if request.auth != null && request.auth.uid == uid
+        && ratchetOrReset("xp")
+        && ratchetOrReset("testsCompleted")
+        && ratchetOrReset("totalTimeSeconds")
+        && ratchetOrReset("longestStreak")
+        && usernameOk();
+      allow delete: if request.auth != null && request.auth.uid == uid;
 
       match /testResults/{resultId} {
         allow read: if true;
@@ -25,6 +52,46 @@ service cloud.firestore {
           && request.resource.data.bestWpm > resource.data.bestWpm;
         allow delete: if request.auth != null && request.auth.uid == uid;
       }
+
+      // Mutual friend list — each side stores the other's uid as the doc id.
+      // A user may only write the entry that *represents themselves* inside
+      // someone else's list, never fabricate an arbitrary edge.
+      match /friends/{friendId} {
+        allow read: if true;
+        allow create, delete: if request.auth != null
+          && (request.auth.uid == uid || request.auth.uid == friendId);
+        allow update: if false;
+      }
+
+      // Incoming friend requests, keyed by requester uid. Only the recipient
+      // can list their own inbox; only the requester can open one.
+      match /friendRequests/{fromUid} {
+        allow read, delete: if request.auth != null && (request.auth.uid == uid || request.auth.uid == fromUid);
+        allow create: if request.auth != null
+          && request.auth.uid == fromUid
+          && request.auth.uid != uid
+          && request.resource.data.fromUid == fromUid;
+        allow update: if false;
+      }
+
+      // Race invites, keyed by raceId. Only the sender may create one in a
+      // recipient's inbox; only the recipient may read/consume it.
+      match /raceInvites/{raceId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null
+          && request.auth.uid != uid
+          && request.auth.uid == request.resource.data.fromUid;
+        allow update: if false;
+      }
+
+      // Per-participant race result snapshot, keyed by raceId — update is
+      // allowed (not append-only like testResults) since a re-fired effect
+      // (e.g. dev double-invoke) may legitimately retry the same doc id.
+      match /raceHistory/{raceId} {
+        allow read: if true;
+        allow create, update: if request.auth != null && request.auth.uid == uid;
+        allow delete: if request.auth != null && request.auth.uid == uid; // account deletion / data purge
+      }
     }
 
     match /leaderboard/{configKey}/entries/{uid} {
@@ -39,6 +106,38 @@ service cloud.firestore {
         && request.resource.data.wpm is number
         && request.resource.data.wpm > resource.data.wpm;
       allow delete: if request.auth != null && request.auth.uid == uid; // account deletion / data purge
+    }
+
+    // A 1v1 race lobby: fixed word list both racers type against, plus a
+    // live sub-doc per racer for progress/wpm. hostUid creates it and names
+    // the one friend invited; that friend claims the open guestUid slot on
+    // accept, after which only the two participants may touch it.
+    match /races/{raceId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.hostUid ||
+        request.auth.uid == resource.data.guestUid ||
+        request.auth.uid == resource.data.invitedUid
+      );
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.hostUid;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.hostUid ||
+        request.auth.uid == resource.data.guestUid ||
+        (resource.data.guestUid == null
+          && resource.data.status == "pending"
+          && request.resource.data.guestUid == request.auth.uid) ||
+        // The invited (not-yet-joined) recipient's own 30s countdown can
+        // also discard a stale invite — restricted to exactly that one
+        // pending -> expired transition, nothing else.
+        (request.auth.uid == resource.data.invitedUid
+          && resource.data.status == "pending"
+          && request.resource.data.status == "expired")
+      );
+      allow delete: if false;
+
+      match /racers/{racerUid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == racerUid;
+      }
     }
   }
 }

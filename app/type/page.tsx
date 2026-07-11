@@ -10,6 +10,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center gap-10 py-10">
+      {/* Visually hidden — the test screen stays near-empty by design
+          (see CLAUDE.md), but the page still needs a real h1 for a11y/SEO. */}
+      <h1 className="sr-only">Typing Speed Test</h1>
       {status !== "finished" && <ConfigBar />}
       {status !== "finished" ? <TestArea /> : <Results />}
     </div>

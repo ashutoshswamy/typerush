@@ -60,7 +60,7 @@ interface SettingsState {
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
-      theme: "signal",
+      theme: "ayu",
       caretStyle: "line",
       soundOnClick: false,
       blindMode: false,

@@ -29,7 +29,9 @@ Both must pass clean. There's no test suite in this repo yet.
 ## Firestore changes
 
 - `testResults` docs are append-only — never edit past docs.
-- Any change to how `personalBests` or `leaderboard` docs are written must keep `firestore.rules` in sync (owner-only writes, WPM must only increase) so scores can't be spoofed from the client.
+- Any change to how `personalBests`, `leaderboard`, or `users/{uid}` stat fields (`xp`, `testsCompleted`, `totalTimeSeconds`, `longestStreak`) are written must keep `firestore.rules` in sync — those fields only ratchet up (or reset to exactly 0), enforced via the `ratchetOrReset()` rules helper, so they can't be spoofed from the client.
+- Usernames must match `/^[a-zA-Z0-9_]{3,20}$/` (`USERNAME_PATTERN` in `lib/firestore.ts`) — enforced both client-side and in `firestore.rules`'s `usernameOk()` helper. Don't add a way to set a username that bypasses `setUsername()`.
+- After changing `firestore.rules`, deploy it: `npx firebase-tools deploy --only firestore:rules --project <project-id>` (requires `npx firebase-tools login` first). Untested rule changes are a common source of silent `permission-denied` bugs — features (friends, races, invites) that write to a new collection won't work until the matching rule is both written *and* deployed.
 
 ## Commit / PR conventions
 

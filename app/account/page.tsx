@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa6";
@@ -11,6 +12,10 @@ import { Panel } from "@/components/Panel";
 import { DangerZone } from "@/components/DangerZone";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Avatar } from "@/components/Avatar";
+import { LevelBadge } from "@/components/LevelBadge";
+import { FriendsPanel } from "@/components/FriendsPanel";
+import { RaceInvitesPanel } from "@/components/RaceInvitesPanel";
+import { listenUserProfile, type UserProfile } from "@/lib/firestore";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 function formatDate(d: Date): string {
@@ -25,6 +30,14 @@ const PROVIDER_META: Record<string, { icon: React.ElementType; label: string }> 
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    return listenUserProfile(user.uid, setProfile);
+  }, [user]);
+
+  const username = profile?.username ?? user?.displayName ?? user?.email ?? "racer";
 
   if (loading) return null;
 
@@ -62,10 +75,10 @@ export default function AccountPage() {
           rig they show the world, not a smaller consolation version of it. */}
       <motion.div variants={fadeUp}>
         <Panel className="flex flex-wrap items-center gap-6 sm:gap-10 px-6 py-6">
-          <Avatar src={user.photoURL} label={user.displayName ?? user.email ?? "?"} size={64} />
+          <Avatar src={user.photoURL} label={username} size={64} />
           <div className="flex flex-col gap-1.5 min-w-0 flex-1">
             <h1 className="font-display text-4xl sm:text-5xl text-main tracking-tight truncate leading-none">
-              {user.displayName ?? user.email}
+              {username}
             </h1>
             <div className="font-test flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-[0.15em] uppercase text-sub">
               {memberSince && <span>racing since {memberSince}</span>}
@@ -76,6 +89,7 @@ export default function AccountPage() {
               <span>id·{serial}</span>
             </div>
           </div>
+          <LevelBadge xp={profile?.xp ?? 0} />
           <button
             onClick={() => signOut()}
             className="font-test flex items-center gap-1.5 text-sub hover:text-error transition-colors text-[11px] tracking-[0.15em] uppercase shrink-0"
@@ -87,12 +101,20 @@ export default function AccountPage() {
       </motion.div>
 
       <motion.div variants={fadeUp}>
+        <RaceInvitesPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
+        <FriendsPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
         <SectionLabel>calibration</SectionLabel>
         <SettingsPanel />
       </motion.div>
 
       <motion.div variants={fadeUp}>
-        <DangerZone uid={user.uid} username={user.displayName ?? user.uid} />
+        <DangerZone uid={user.uid} username={username} />
       </motion.div>
     </motion.div>
   );

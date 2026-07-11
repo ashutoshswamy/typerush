@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { SiKofi } from "react-icons/si";
 import { fadeIn } from "@/lib/motion";
 import { useSettings } from "@/store/settings";
 import { DARK_THEMES, LIGHT_THEMES } from "@/lib/themes";
@@ -12,12 +13,18 @@ const DEV_LINKS = [
   { label: "GitHub", href: "https://github.com/ashutoshswamy", icon: FaGithub },
   { label: "LinkedIn", href: "https://linkedin.com/in/ashutoshswamy", icon: FaLinkedin },
   { label: "X", href: "https://x.com/ashutoshswamy_", icon: FaXTwitter },
+  { label: "Ko-fi", href: "https://ko-fi.com/ashutoshswamy", icon: SiKofi },
 ];
 
 const SITE_LINKS = [
   { label: "type test", href: "/type" },
   { label: "leaderboard", href: "/leaderboard" },
   { label: "account", href: "/account" },
+];
+
+const LEGAL_LINKS = [
+  { label: "terms of service", href: "/terms" },
+  { label: "privacy policy", href: "/privacy" },
 ];
 
 export function Footer() {
@@ -35,7 +42,7 @@ export function Footer() {
     >
       <span className="graticule w-full block" aria-hidden="true" />
 
-      <div className="max-w-4xl mx-auto px-6 py-12 grid grid-cols-2 sm:grid-cols-[1.3fr_1fr_1fr] gap-x-8 gap-y-10">
+      <div className="max-w-4xl mx-auto px-6 py-12 grid grid-cols-2 sm:grid-cols-[1.3fr_1fr_1fr_1fr] gap-x-8 gap-y-10">
         <div className="col-span-2 sm:col-span-1 flex flex-col gap-3">
           <div className="flex items-center gap-2 font-display text-main font-bold tracking-[0.1em] text-base">
             <span
@@ -78,11 +85,22 @@ export function Footer() {
             ))}
           </div>
         </div>
+
+        <div className="flex flex-col gap-3">
+          <h2 className="font-test text-sub text-[10px] tracking-[0.2em] uppercase">legal</h2>
+          <nav className="flex flex-col gap-2">
+            {LEGAL_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="text-text/80 hover:text-main transition-colors text-sm w-fit">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
 
       <div className="border-t border-sub/15">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-test text-[10px] tracking-[0.1em] text-sub/60">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="font-test text-[10px] tracking-[0.1em] text-sub/60" suppressHydrationWarning>
             © {new Date().getFullYear()} ashutoshswamy. All rights reserved.
           </p>
           <div className="flex items-center gap-2">

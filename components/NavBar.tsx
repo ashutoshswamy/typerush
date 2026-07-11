@@ -1,10 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Keyboard, Trophy, User, Settings, LogOut } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import { listenUserProfile, type UserProfile } from "@/lib/firestore";
+import { LevelBadge } from "./LevelBadge";
+import { RaceInviteBell } from "./RaceInviteBell";
 
 function NavLink({
   href,
@@ -35,6 +39,12 @@ function NavLink({
 export function NavBar() {
   const { user, configured, signOut } = useAuth();
   const pathname = usePathname();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (!configured || !user) return;
+    return listenUserProfile(user.uid, setProfile);
+  }, [configured, user]);
 
   return (
     <motion.header
@@ -60,8 +70,8 @@ export function NavBar() {
           <Trophy size={14} aria-hidden="true" />
           leaderboard
         </NavLink>
-        {configured && user && (
-          <NavLink href={`/profile/${user.displayName ?? user.uid}`} active={pathname.startsWith("/profile")}>
+        {configured && user && profile && (
+          <NavLink href={`/profile/${profile.username}`} active={pathname.startsWith("/profile")}>
             <User size={14} aria-hidden="true" />
             profile
           </NavLink>
@@ -71,10 +81,14 @@ export function NavBar() {
           account
         </NavLink>
         {configured && user && (
-          <button onClick={() => signOut()} className="flex items-center gap-1.5 hover:text-text transition-colors">
-            <LogOut size={14} aria-hidden="true" />
-            sign out
-          </button>
+          <>
+            <RaceInviteBell />
+            <LevelBadge xp={profile?.xp ?? 0} size="sm" />
+            <button onClick={() => signOut()} className="flex items-center gap-1.5 hover:text-text transition-colors">
+              <LogOut size={14} aria-hidden="true" />
+              sign out
+            </button>
+          </>
         )}
       </nav>
       <span className="graticule absolute bottom-0 left-0 right-0" aria-hidden="true" />

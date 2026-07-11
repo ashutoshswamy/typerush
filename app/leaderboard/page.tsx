@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { getLeaderboard, configKey, type LeaderboardEntry, type TestMode } from "@/lib/firestore";
+import { levelFromXp } from "@/lib/xp";
 import { Panel } from "@/components/Panel";
 import { SignalBar } from "@/components/SignalBar";
 import { Avatar } from "@/components/Avatar";
@@ -85,6 +86,7 @@ function LeaderboardTable({ mode, size }: { mode: TestMode; size: number }) {
                   {e.wpm}
                 </span>
                 <span className="text-sub text-[10px] tracking-[0.15em] uppercase">wpm</span>
+                <span className="text-main text-[10px] tracking-[0.1em] uppercase tabular-nums">lv {levelFromXp(e.xp ?? 0)}</span>
               </Panel>
             </motion.div>
           );
@@ -106,6 +108,9 @@ function LeaderboardTable({ mode, size }: { mode: TestMode; size: number }) {
               <Link href={`/profile/${e.username}`} className="flex-1 hover:text-main transition-colors">
                 {e.username}
               </Link>
+              <span className="text-main text-[10px] tracking-[0.1em] uppercase tabular-nums w-12 text-right shrink-0">
+                lv {levelFromXp(e.xp ?? 0)}
+              </span>
               <div className="w-24 hidden sm:block">
                 <SignalBar value={e.wpm} max={max} />
               </div>

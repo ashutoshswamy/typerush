@@ -6,13 +6,14 @@ import { LogIn } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa6";
 import { useAuth } from "./AuthProvider";
 import { Panel } from "./Panel";
+import { PasswordInput } from "./PasswordInput";
 
 export function AuthForm() {
   const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail, configured } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -28,9 +29,13 @@ export function AuthForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (mode === "signup" && password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
     setBusy(true);
     try {
-      if (mode === "signup") await signUpWithEmail(email, password, username);
+      if (mode === "signup") await signUpWithEmail(email, password);
       else await signInWithEmail(email, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -85,15 +90,6 @@ export function AuthForm() {
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-2">
-        {mode === "signup" && (
-          <input
-            className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-main"
-            placeholder="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        )}
         <input
           className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-main"
           type="email"
@@ -102,15 +98,15 @@ export function AuthForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <input
-          className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-main"
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
-          required
-        />
+        <PasswordInput value={password} onChange={setPassword} placeholder="password" minLength={6} />
+        {mode === "signup" && (
+          <PasswordInput
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            placeholder="confirm password"
+            minLength={6}
+          />
+        )}
         <motion.button
           whileTap={{ scale: 0.97 }}
           type="submit"

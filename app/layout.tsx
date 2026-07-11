@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { UsernamePrompt } from "@/components/UsernamePrompt";
 
 // UI chrome — deliberately quiet, meant to recede.
 const geistSans = Geist({
@@ -79,9 +80,28 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.webmanifest",
+};
+
+// Static, non-user-derived JSON — safe to render as a plain script child
+// (no dangerouslySetInnerHTML needed) for a SoftwareApplication rich result.
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "typerush",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  author: { "@type": "Person", name: "Ashutosh Swamy" },
 };
 
 export default function RootLayout({
@@ -92,13 +112,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="signal"
+      data-theme="ayu"
       className={`${geistSans.variable} ${plexMono.variable} ${bigShoulders.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
+        <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
         <div className="grid-backdrop fixed inset-0 pointer-events-none z-0" aria-hidden="true" />
         <AuthProvider>
           <ThemeProvider>
+            <UsernamePrompt />
             <NavBar />
             <main className="relative z-10 flex-1 flex flex-col justify-center px-4">
               <PageTransition>{children}</PageTransition>

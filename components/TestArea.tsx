@@ -19,6 +19,8 @@ export function TestArea() {
     mode,
     elapsedMs,
     wpmTimeline,
+    wordTier,
+    configure,
     tick,
     type,
     backspace,
@@ -29,6 +31,14 @@ export function TestArea() {
   const innerRef = useRef<HTMLDivElement>(null);
   const [lineOffset, setLineOffset] = useState(0);
   const activeWordRef = useRef<HTMLSpanElement>(null);
+
+  // words[] starts empty (see store/engine.ts) to keep the server-rendered
+  // and first-client-render HTML identical — fill in the real random buffer
+  // right after hydration instead.
+  useEffect(() => {
+    if (useEngine.getState().words.length === 0) configure(mode, config, wordTier);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // performance.now()-driven tick loop, not naive setInterval counting.
   useEffect(() => {

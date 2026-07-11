@@ -16,6 +16,7 @@ export function Results() {
   const { user, configured } = useAuth();
   const [saved, setSaved] = useState(resultSaved);
   const [isNewBest, setIsNewBest] = useState(false);
+  const [xpGained, setXpGained] = useState(0);
   const savingRef = useRef(resultSaved);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -41,12 +42,14 @@ export function Results() {
         consistency: results.consistency,
         charStats: results.charStats,
         wpmTimeline: results.wpmTimeline,
+        elapsedSeconds: results.elapsedSeconds,
       },
       user.photoURL ?? null
     )
-      .then(({ isNewBest }) => {
+      .then(({ isNewBest, xpGained }) => {
         setSaved(true);
         setIsNewBest(isNewBest);
+        setXpGained(xpGained);
         markResultSaved();
       })
       .catch(() => {
@@ -179,7 +182,12 @@ export function Results() {
         </button>
         {!configured && <span>guest mode — sign in to save history</span>}
         {configured && !user && <span>sign in to save this result</span>}
-        {configured && user && <span>{saved ? "saved to history" : "saving…"}</span>}
+        {configured && user && (
+          <span>
+            {saved ? "saved to history" : "saving…"}
+            {saved && xpGained > 0 && <span className="text-main"> · +{xpGained} xp</span>}
+          </span>
+        )}
       </div>
     </motion.div>
   );
