@@ -172,7 +172,7 @@ export function Results() {
         </div>
       </Panel>
 
-      <div className="font-test flex items-center gap-4 text-xs tracking-[0.1em] uppercase text-sub">
+      <div className="font-test flex flex-wrap items-center gap-4 text-xs tracking-[0.1em] uppercase text-sub">
         <button
           onClick={restart}
           className="group flex items-center gap-2 border-2 border-main px-4 py-2 text-main transition-colors hover:bg-main hover:text-bg"

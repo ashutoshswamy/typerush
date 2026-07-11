@@ -105,7 +105,7 @@ function LeaderboardTable({ mode, size }: { mode: TestMode; size: number }) {
                 {String(i + 4).padStart(2, "0")}
               </span>
               <Avatar src={e.photoURL} label={e.username} size={28} />
-              <Link href={`/profile/${e.username}`} className="flex-1 hover:text-main transition-colors">
+              <Link href={`/profile/${e.username}`} className="flex-1 min-w-0 truncate hover:text-main transition-colors">
                 {e.username}
               </Link>
               <span className="text-main text-[10px] tracking-[0.1em] uppercase tabular-nums w-12 text-right shrink-0">

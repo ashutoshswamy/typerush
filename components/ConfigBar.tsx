@@ -30,7 +30,7 @@ export function ConfigBar() {
     <motion.div
       animate={{ opacity: disabled ? 0.2 : 1 }}
       transition={{ duration: 0.25 }}
-      className={`flex flex-wrap items-center justify-center gap-5 text-xs tracking-[0.15em] uppercase text-sub ${
+      className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-5 text-xs tracking-[0.15em] uppercase text-sub ${
         disabled ? "pointer-events-none" : ""
       }`}
     >
@@ -59,7 +59,7 @@ export function ConfigBar() {
           <button
             key={m}
             onClick={() => setMode(m)}
-            className={`flex items-center gap-1.5 ${mode === m ? "text-main" : "hover:text-text"}`}
+            className={`flex items-center gap-1.5 py-1 ${mode === m ? "text-main" : "hover:text-text"}`}
           >
             <Icon size={13} aria-hidden="true" />
             {m}
@@ -74,7 +74,7 @@ export function ConfigBar() {
           <button
             key={d}
             onClick={() => configure(mode, { ...config, duration: d })}
-            className={config.duration === d ? "text-main" : "hover:text-text"}
+            className={`py-1 ${config.duration === d ? "text-main" : "hover:text-text"}`}
           >
             {d}
           </button>
@@ -84,7 +84,7 @@ export function ConfigBar() {
           <button
             key={c}
             onClick={() => configure(mode, { ...config, wordCount: c })}
-            className={config.wordCount === c ? "text-main" : "hover:text-text"}
+            className={`py-1 ${config.wordCount === c ? "text-main" : "hover:text-text"}`}
           >
             {c}
           </button>

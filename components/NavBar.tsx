@@ -51,9 +51,9 @@ export function NavBar() {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative z-10 flex items-center justify-between px-6 py-4 text-xs tracking-[0.15em] uppercase text-sub"
+      className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-4 text-xs tracking-[0.15em] uppercase text-sub"
     >
-      <Link href="/" className="font-display flex items-center gap-2.5 text-main font-bold tracking-[0.1em] normal-case text-base">
+      <Link href="/" className="font-display flex items-center gap-2.5 text-main font-bold tracking-[0.1em] normal-case text-base shrink-0">
         <span
           className="w-1.5 h-1.5 rounded-full bg-main animate-pulse"
           style={{ boxShadow: "0 0 6px var(--main)" }}
@@ -61,24 +61,24 @@ export function NavBar() {
         />
         typerush
       </Link>
-      <nav className="flex items-center gap-6">
+      <nav className="flex items-center gap-3 sm:gap-6">
         <NavLink href="/type" active={pathname === "/type"} highlight>
           <Keyboard size={14} aria-hidden="true" />
-          type
+          <span className="hidden sm:inline">type</span>
         </NavLink>
         <NavLink href="/leaderboard" active={pathname === "/leaderboard"}>
           <Trophy size={14} aria-hidden="true" />
-          leaderboard
+          <span className="hidden sm:inline">leaderboard</span>
         </NavLink>
         {configured && user && profile && (
           <NavLink href={`/profile/${profile.username}`} active={pathname.startsWith("/profile")}>
             <User size={14} aria-hidden="true" />
-            profile
+            <span className="hidden sm:inline">profile</span>
           </NavLink>
         )}
         <NavLink href="/account" active={pathname === "/account"}>
           <Settings size={14} aria-hidden="true" />
-          account
+          <span className="hidden sm:inline">account</span>
         </NavLink>
         {configured && user && (
           <>
@@ -86,7 +86,7 @@ export function NavBar() {
             <LevelBadge xp={profile?.xp ?? 0} size="sm" />
             <button onClick={() => signOut()} className="flex items-center gap-1.5 hover:text-text transition-colors">
               <LogOut size={14} aria-hidden="true" />
-              sign out
+              <span className="hidden sm:inline">sign out</span>
             </button>
           </>
         )}
