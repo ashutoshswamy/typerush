@@ -22,7 +22,7 @@ export function SettingsPanel() {
   } = useSettings();
 
   return (
-    <Panel className="flex flex-col gap-6 text-xs tracking-[0.1em] uppercase px-6 py-5">
+    <Panel className="flex flex-col gap-6 text-xs px-6 py-5">
       <div>
         <div className="flex items-center gap-1.5 text-sub mb-2">
           <Palette size={14} aria-hidden="true" />
@@ -37,7 +37,7 @@ export function SettingsPanel() {
                   key={t}
                   onClick={() => setTheme(t)}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-3 py-1 border transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
                     theme === t ? "border-main text-main" : "border-sub/30 text-sub hover:text-text"
                   }`}
                 >
@@ -59,7 +59,7 @@ export function SettingsPanel() {
                   key={t}
                   onClick={() => setTheme(t)}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-3 py-1 border transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
                     theme === t ? "border-main text-main" : "border-sub/30 text-sub hover:text-text"
                   }`}
                 >

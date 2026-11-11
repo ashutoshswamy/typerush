@@ -16,8 +16,25 @@ service cloud.firestore {
         && request.resource.data.username.matches("^[a-zA-Z0-9_]{3,20}$"));
   }
 
+  // Consent record (cookies, 18+, terms/privacy). Shape-checked, owner only.
+  function validConsent() {
+    return request.resource.data.keys().hasOnly(
+        ["cookies", "cookiesAt", "ageConfirmed", "termsAcceptedAt", "privacyAcceptedAt", "policyVersion", "updatedAt"])
+      && (!("cookies" in request.resource.data) || request.resource.data.cookies in ["all", "essential"])
+      && (!("ageConfirmed" in request.resource.data) || request.resource.data.ageConfirmed == true)
+      && (!("policyVersion" in request.resource.data) || request.resource.data.policyVersion is string);
+  }
+
   match /databases/{database}/documents {
     match /users/{uid} {
+      // Private to the owner: never readable by other users, unlike the
+      // public profile doc above it.
+      match /private/{docId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && docId == "consent" && validConsent();
+      }
+
       allow read: if true;
       allow create: if request.auth != null && request.auth.uid == uid
         && request.resource.data.username is string

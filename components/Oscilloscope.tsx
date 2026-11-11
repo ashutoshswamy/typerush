@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { useEffect, useRef } from "react";
+import { animate as tween } from "framer-motion";
 
 // The app's signature: typing rhythm rendered as a live instrument trace,
 // same visual language whether idle, mid-test, or on the results hero.
@@ -32,21 +31,28 @@ export function Oscilloscope({
         })
       : [`0,${height / 2}`, `${width},${height / 2}`];
 
-  useGSAP(
-    () => {
-      const line = lineRef.current;
-      if (!animate || !line) return;
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduced) return;
-      const length = line.getTotalLength();
-      gsap.fromTo(
-        line,
-        { strokeDasharray: length, strokeDashoffset: length },
-        { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut", delay: 0.15 }
-      );
-    },
-    { dependencies: [animate, samples.length] }
-  );
+  // Draw-in: dash the polyline to its own length, then tween the offset to 0.
+  useEffect(() => {
+    const line = lineRef.current;
+    if (!animate || !line) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const length = line.getTotalLength();
+    line.style.strokeDasharray = String(length);
+    line.style.strokeDashoffset = String(length);
+    const controls = tween(length, 0, {
+      duration: 1.1,
+      delay: 0.15,
+      ease: [0.65, 0, 0.35, 1],
+      onUpdate: (v) => {
+        line.style.strokeDashoffset = String(v);
+      },
+      onComplete: () => {
+        line.style.strokeDasharray = "";
+        line.style.strokeDashoffset = "";
+      },
+    });
+    return () => controls.stop();
+  }, [animate, samples.length]);
 
   return (
     <svg

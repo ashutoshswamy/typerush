@@ -30,7 +30,7 @@ export function ConfigBar() {
     <motion.div
       animate={{ opacity: disabled ? 0.2 : 1 }}
       transition={{ duration: 0.25 }}
-      className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-5 text-xs tracking-[0.15em] uppercase text-sub ${
+      className={`surface !rounded-full flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-5 px-5 py-2.5 text-sm text-sub ${
         disabled ? "pointer-events-none" : ""
       }`}
     >
@@ -51,7 +51,7 @@ export function ConfigBar() {
         numbers
       </label>
 
-      <span className="w-px h-4 bg-sub/40" />
+      <span className="w-px h-4 bg-sub/30" />
 
       {(["time", "words", "quote", "zen"] as TestMode[]).map((m) => {
         const Icon = MODE_ICON[m];
@@ -67,7 +67,7 @@ export function ConfigBar() {
         );
       })}
 
-      <span className="w-px h-4 bg-sub/40" />
+      <span className="w-px h-4 bg-sub/30" />
 
       {mode === "time" &&
         DURATIONS.map((d) => (

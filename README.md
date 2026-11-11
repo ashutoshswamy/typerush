@@ -1,6 +1,6 @@
 # typerush
 
-![typerush](./public/og-image.png)
+![typerush](./public/og-image.jpg)
 
 A minimalist, fast typing speed test web app inspired by Monkeytype. Type randomly generated word sequences against a timer or word-count target, get real-time WPM, accuracy, and consistency stats, add friends and race them live, and level up via XP.
 

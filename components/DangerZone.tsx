@@ -1,5 +1,6 @@
 "use client";
 
+import { notify } from "@/lib/toast";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +42,6 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
   const [exportingCsv, setExportingCsv] = useState(false);
   const [armed, setArmed] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
   const isPasswordAccount = user?.providerData[0]?.providerId === "password";
@@ -49,7 +49,6 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
   const [dataArmed, setDataArmed] = useState(false);
   const [clearingData, setClearingData] = useState(false);
   const [dataCleared, setDataCleared] = useState(false);
-  const [dataError, setDataError] = useState<string | null>(null);
 
   async function handleClearData() {
     if (!dataArmed) {
@@ -57,14 +56,14 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
       return;
     }
     setClearingData(true);
-    setDataError(null);
     try {
       await deleteAllTestData(uid);
       setDataCleared(true);
       setDataArmed(false);
+      notify.success("Data cleared", "Test history and XP were reset.");
     } catch (err) {
       console.warn("clear data failed:", err);
-      setDataError(`Couldn't clear data: ${err instanceof Error ? err.message : String(err)}`);
+      notify.error("Couldn't clear data", err instanceof Error ? err.message : String(err));
       setDataArmed(false);
     } finally {
       setClearingData(false);
@@ -82,6 +81,9 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
       a.download = `typerush-${username}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      notify.success("Export ready", "Your JSON file was downloaded.");
+    } catch (err) {
+      notify.error("Export failed", err instanceof Error ? err.message : undefined);
     } finally {
       setExporting(false);
     }
@@ -121,6 +123,9 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
       a.download = `typerush-${username}-results.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      notify.success("Export ready", "Your CSV file was downloaded.");
+    } catch (err) {
+      notify.error("Export failed", err instanceof Error ? err.message : undefined);
     } finally {
       setExportingCsv(false);
     }
@@ -132,9 +137,9 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
       return;
     }
     setDeleting(true);
-    setError(null);
     try {
       await deleteAccount(passwordRequired ? password : undefined);
+      notify.success("Account deleted");
       router.push("/");
     } catch (err) {
       console.warn("delete account failed:", err);
@@ -146,7 +151,8 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
         setDeleting(false);
         return;
       }
-      setError(
+      notify.error(
+        "Couldn't delete account",
         code === "auth/requires-recent-login"
           ? "Reauthentication was cancelled — try deleting again to confirm your identity."
           : code === "permission-denied"
@@ -164,7 +170,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
 
   return (
     <Panel className="flex flex-col gap-4 px-5 py-5">
-      <h2 className="flex items-center gap-1.5 text-error text-xs tracking-[0.15em] uppercase">
+      <h2 className="flex items-center gap-1.5 text-error text-xs">
         <TriangleAlert size={14} aria-hidden="true" />
         danger zone
       </h2>
@@ -175,7 +181,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
+            className="flex items-center gap-1.5 text-main hover:underline text-xs w-fit disabled:opacity-50"
           >
             <Download size={13} aria-hidden="true" />
             {exporting ? "preparing…" : "export my data (json)"}
@@ -183,7 +189,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
           <button
             onClick={handleExportCsv}
             disabled={exportingCsv}
-            className="flex items-center gap-1.5 text-main hover:underline text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50"
+            className="flex items-center gap-1.5 text-main hover:underline text-xs w-fit disabled:opacity-50"
           >
             <FileSpreadsheet size={13} aria-hidden="true" />
             {exportingCsv ? "preparing…" : "export results (csv)"}
@@ -202,7 +208,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
           transition={{ duration: 0.35 }}
           onClick={handleClearData}
           disabled={clearingData}
-          className={`flex items-center gap-1.5 text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50 ${
+          className={`flex items-center gap-1.5 text-xs w-fit disabled:opacity-50 ${
             dataArmed ? "bg-error text-bg px-3 py-2" : "text-error hover:underline"
           }`}
         >
@@ -216,7 +222,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               onClick={() => setDataArmed(false)}
-              className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
+              className="flex items-center gap-1.5 text-sub hover:text-text text-xs w-fit"
             >
               <X size={13} aria-hidden="true" />
               cancel
@@ -224,7 +230,6 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
           )}
         </AnimatePresence>
         {dataCleared && <p className="text-sub text-xs">All test data cleared.</p>}
-        {dataError && <p className="text-error text-xs">{dataError}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5 border-t border-sub/15 pt-4">
@@ -250,7 +255,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
           transition={{ duration: 0.35 }}
           onClick={handleDelete}
           disabled={deleting || (passwordRequired && !password)}
-          className={`flex items-center gap-1.5 text-xs tracking-[0.1em] uppercase w-fit disabled:opacity-50 ${
+          className={`flex items-center gap-1.5 text-xs w-fit disabled:opacity-50 ${
             armed ? "bg-error text-bg px-3 py-2" : "text-error hover:underline"
           }`}
         >
@@ -274,14 +279,13 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
                 setPasswordRequired(false);
                 setPassword("");
               }}
-              className="flex items-center gap-1.5 text-sub hover:text-text text-xs tracking-[0.1em] uppercase w-fit"
+              className="flex items-center gap-1.5 text-sub hover:text-text text-xs w-fit"
             >
               <X size={13} aria-hidden="true" />
               cancel
             </motion.button>
           )}
         </AnimatePresence>
-        {error && <p className="text-error text-xs">{error}</p>}
       </div>
     </Panel>
   );

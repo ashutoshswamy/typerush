@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { LogOut } from "lucide-react";
+import { LogOut, Check } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa6";
 import { Mail } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
@@ -11,6 +11,7 @@ import { SettingsPanel } from "@/components/SettingsPanel";
 import { Panel } from "@/components/Panel";
 import { DangerZone } from "@/components/DangerZone";
 import { SectionLabel } from "@/components/SectionLabel";
+import { PageHeader } from "@/components/PageHeader";
 import { Avatar } from "@/components/Avatar";
 import { LevelBadge } from "@/components/LevelBadge";
 import { FriendsPanel } from "@/components/FriendsPanel";
@@ -23,8 +24,8 @@ function formatDate(d: Date): string {
 }
 
 const PROVIDER_META: Record<string, { icon: React.ElementType; label: string }> = {
-  "google.com": { icon: FaGoogle, label: "google" },
-  "github.com": { icon: FaGithub, label: "github" },
+  "google.com": { icon: FaGoogle, label: "Google" },
+  "github.com": { icon: FaGithub, label: "GitHub" },
   password: { icon: Mail, label: "email" },
 };
 
@@ -47,15 +48,29 @@ export default function AccountPage() {
         initial="hidden"
         animate="show"
         variants={staggerContainer}
-        className="flex flex-col items-center text-center gap-8 max-w-md mx-auto py-24 w-full"
+        className="mx-auto grid w-full max-w-5xl items-center gap-12 py-12 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-20"
       >
-        <motion.div variants={fadeUp} className="flex flex-col items-center gap-3">
-          <h1 className="font-display text-4xl sm:text-5xl text-text tracking-tight leading-none">Sign in to calibrate</h1>
-          <p className="text-sub text-sm max-w-sm">
-            History, personal bests, and theme calibration live behind your channel — sign in or open one to start logging runs.
-          </p>
+        <motion.div variants={fadeUp} className="flex flex-col gap-8">
+          <PageHeader
+            title="Sign in to keep your runs"
+            description="Your history, personal bests, friends and race invites, all in one place."
+          />
+          <ul className="flex flex-col gap-4 text-text/85">
+            {[
+              "Save every test and track your personal bests",
+              "Add friends and race them live, 1v1",
+              "Earn XP, level up and join the leaderboard",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-main/15 text-main">
+                  <Check size={14} aria-hidden="true" />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
         </motion.div>
-        <motion.div variants={fadeUp} className="w-full flex justify-center">
+        <motion.div variants={fadeUp} className="flex w-full justify-center lg:justify-end">
           <AuthForm />
         </motion.div>
       </motion.div>
@@ -66,56 +81,59 @@ export default function AccountPage() {
   const providerId = user.providerData[0]?.providerId ?? "password";
   const provider = PROVIDER_META[providerId] ?? PROVIDER_META.password;
   const ProviderIcon = provider.icon;
-  const serial = user.uid.slice(-6).toUpperCase();
 
   return (
-    <motion.div initial="hidden" animate="show" variants={staggerContainer} className="flex flex-col gap-10 max-w-5xl mx-auto py-14 w-full">
-      {/* Spec plate — same instrument-ID-stamp language as the public profile's
-          identity block, so a signed-in user's own console reads as the same
-          rig they show the world, not a smaller consolation version of it. */}
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={staggerContainer}
+      className="mx-auto flex w-full max-w-6xl flex-col gap-8 py-12 sm:py-16"
+    >
       <motion.div variants={fadeUp}>
-        <Panel className="flex flex-wrap items-center gap-6 sm:gap-10 px-6 py-6">
-          <Avatar src={user.photoURL} label={username} size={64} />
-          <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-            <h1 className="font-display text-4xl sm:text-5xl text-main tracking-tight truncate leading-none">
+        <Panel className="flex flex-wrap items-center gap-6 p-6 sm:p-8">
+          <Avatar src={user.photoURL} label={username} size={72} />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display truncate text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-text">
               {username}
             </h1>
-            <div className="font-test flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-[0.15em] uppercase text-sub">
-              {memberSince && <span>racing since {memberSince}</span>}
+            <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sub">
+              {memberSince && <span>Member since {memberSince}</span>}
               <span className="flex items-center gap-1.5">
-                <ProviderIcon size={11} aria-hidden="true" />
-                {provider.label}
+                <ProviderIcon size={13} aria-hidden="true" />
+                Signed in with {provider.label}
               </span>
-              <span>id·{serial}</span>
-            </div>
+            </p>
           </div>
           <LevelBadge xp={profile?.xp ?? 0} />
           <button
             onClick={() => signOut()}
-            className="font-test flex items-center gap-1.5 text-sub hover:text-error transition-colors text-[11px] tracking-[0.15em] uppercase shrink-0"
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-sub/40 px-4 py-2.5 text-sm font-medium text-text transition-colors hover:border-error hover:text-error"
           >
-            <LogOut size={13} aria-hidden="true" />
-            sign out
+            <LogOut size={15} aria-hidden="true" />
+            Sign out
           </button>
         </Panel>
       </motion.div>
 
-      <motion.div variants={fadeUp}>
-        <RaceInvitesPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
-        <FriendsPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
-        <SectionLabel>calibration</SectionLabel>
-        <SettingsPanel />
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
-        <DangerZone uid={user.uid} username={username} />
-      </motion.div>
+      <div className="grid items-start gap-8 lg:grid-cols-[1.1fr_1fr]">
+        <div className="flex flex-col gap-8">
+          <motion.div variants={fadeUp}>
+            <RaceInvitesPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <FriendsPanel uid={user.uid} username={username} photoURL={user.photoURL ?? null} />
+          </motion.div>
+        </div>
+        <div className="flex flex-col gap-8">
+          <motion.div variants={fadeUp}>
+            <SectionLabel>Settings</SectionLabel>
+            <SettingsPanel />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <DangerZone uid={user.uid} username={username} />
+          </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 }

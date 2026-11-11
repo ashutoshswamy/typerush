@@ -1,9 +1,8 @@
 "use client";
 
+import { notify } from "@/lib/toast";
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { motion } from "framer-motion";
+import { motion, animate as tween } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import { useEngine } from "@/store/engine";
 import { useAuth } from "./AuthProvider";
@@ -22,7 +21,6 @@ export function Results() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wpmRef = useRef<HTMLSpanElement>(null);
   const accRef = useRef<HTMLSpanElement>(null);
-  const pbRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     // resultSaved lives in the store (not a local ref) so it survives a
@@ -51,8 +49,11 @@ export function Results() {
         setIsNewBest(isNewBest);
         setXpGained(xpGained);
         markResultSaved();
+        if (isNewBest) notify.success("New personal best", `${results.wpmNet} wpm${xpGained ? ` · +${xpGained} xp` : ""}`);
+        else if (xpGained > 0) notify.success("Result saved", `+${xpGained} xp`);
       })
       .catch(() => {
+        notify.error("Couldn't save result", "Check your connection and try another run.");
         setSaved(false);
         savingRef.current = false;
       });
@@ -62,45 +63,26 @@ export function Results() {
   // the graph draws itself in (handled inside Oscilloscope), and a new
   // personal best gets a one-time underline flourish. Everywhere else in
   // the app, motion stays instant and functional — this is the payoff.
-  useGSAP(
-    () => {
-      if (status !== "finished" || !results) return;
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (reduced) {
-        if (wpmRef.current) wpmRef.current.textContent = String(results.wpmNet);
-        if (accRef.current) accRef.current.textContent = String(results.accuracy);
-        return;
-      }
-
-      const counters = { wpm: 0, acc: 0 };
-      gsap.to(counters, {
-        wpm: results.wpmNet,
-        acc: results.accuracy,
-        duration: 1,
-        ease: "power2.out",
-        onUpdate: () => {
-          if (wpmRef.current) wpmRef.current.textContent = String(Math.round(counters.wpm));
-          if (accRef.current) accRef.current.textContent = String(Math.round(counters.acc));
-        },
-      });
-    },
-    { dependencies: [status, results?.wpmNet, results?.accuracy], scope: rootRef }
-  );
-
-  useGSAP(
-    () => {
-      if (!isNewBest || !pbRef.current) return;
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduced) return;
-      gsap.fromTo(
-        pbRef.current,
-        { scaleX: 0 },
-        { scaleX: 1, duration: 0.4, ease: "power2.out", transformOrigin: "left", delay: 0.9 }
-      );
-    },
-    { dependencies: [isNewBest], scope: rootRef }
-  );
+  // Count-up for WPM and accuracy, once per finished result.
+  useEffect(() => {
+    if (status !== "finished" || !results) return;
+    const wpmEl = wpmRef.current;
+    const accEl = accRef.current;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (wpmEl) wpmEl.textContent = String(results.wpmNet);
+      if (accEl) accEl.textContent = String(results.accuracy);
+      return;
+    }
+    const controls = tween(0, 1, {
+      duration: 1,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (p) => {
+        if (wpmEl) wpmEl.textContent = String(Math.round(results.wpmNet * p));
+        if (accEl) accEl.textContent = String(Math.round(results.accuracy * p));
+      },
+    });
+    return () => controls.stop();
+  }, [status, results]);
 
   if (status !== "finished" || !results) return null;
 
@@ -116,9 +98,9 @@ export function Results() {
     >
       <Panel className="px-6 pt-6 pb-4">
         <div className="flex items-baseline justify-between mb-2">
-          <span className="font-test text-[10px] tracking-[0.25em] uppercase text-sub">wpm trace</span>
-          <span className="font-test text-[10px] tracking-[0.15em] uppercase text-sub tabular-nums">
-            peak <span className="text-main">{peak}</span>
+          <span className="text-sm text-sub">Speed over time</span>
+          <span className="text-sm text-sub tabular-nums">
+            Peak <span className="font-semibold text-main">{peak}</span>
           </span>
         </div>
         <Oscilloscope samples={results.wpmTimeline} height={120} strokeWidth={2} animate />
@@ -126,7 +108,7 @@ export function Results() {
 
       <Panel className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-sub/15">
         <div className="px-6 py-5 min-w-0">
-          <div className="font-test text-sub text-xs tracking-[0.15em] uppercase">wpm</div>
+          <div className="text-sm text-sub">WPM</div>
           <div
             className="font-display text-main font-bold leading-none mt-1 tabular-nums"
             style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)" }}
@@ -135,17 +117,19 @@ export function Results() {
           </div>
           {isNewBest && (
             <div className="mt-2 flex items-center gap-1">
-              <span
-                ref={pbRef}
-                className="block h-[2px] w-4 bg-main"
-                style={{ boxShadow: "0 0 6px var(--main)" }}
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.4, delay: 0.9, ease: "easeOut" }}
+                style={{ originX: 0 }}
+                className="block h-0.5 w-4 rounded-full bg-main"
               />
-              <span className="font-test text-main text-[10px] tracking-[0.15em] uppercase">personal best</span>
+              <span className="text-sm font-semibold text-main">Personal best</span>
             </div>
           )}
         </div>
         <div className="px-6 py-5 min-w-0">
-          <div className="font-test text-sub text-xs tracking-[0.15em] uppercase">accuracy</div>
+          <div className="text-sm text-sub">Accuracy</div>
           <div
             className="font-display text-main font-bold leading-none mt-1 tabular-nums"
             style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)" }}
@@ -153,17 +137,17 @@ export function Results() {
             <span ref={accRef}>0</span>%
           </div>
         </div>
-        <div className="font-test px-6 py-5 min-w-0 flex flex-col justify-center gap-2.5 text-xs tracking-[0.1em] uppercase text-sub">
+        <div className="px-6 py-5 min-w-0 flex flex-col justify-center gap-3 text-sm text-sub">
           <div className="flex items-center justify-between gap-4">
-            <span>consistency</span>
+            <span>Consistency</span>
             <span className="text-text tabular-nums shrink-0">{results.consistency}%</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span>raw</span>
+            <span>Raw WPM</span>
             <span className="text-text tabular-nums shrink-0">{results.wpm}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span>correct / incorrect / extra / missed</span>
+            <span>Correct / incorrect / extra / missed</span>
             <span className="text-text tabular-nums">
               {results.charStats.correct} / {results.charStats.incorrect} / {results.charStats.extra} /{" "}
               {results.charStats.missed}
@@ -172,19 +156,19 @@ export function Results() {
         </div>
       </Panel>
 
-      <div className="font-test flex flex-wrap items-center gap-4 text-xs tracking-[0.1em] uppercase text-sub">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-sub">
         <button
           onClick={restart}
-          className="group flex items-center gap-2 border-2 border-main px-4 py-2 text-main transition-colors hover:bg-main hover:text-bg"
+          className="group flex items-center gap-2 rounded-xl bg-main px-5 py-2.5 text-sm font-semibold text-bg transition-[filter] hover:brightness-110"
         >
           <RotateCcw size={13} aria-hidden="true" />
-          restart — shift+enter
+          Restart (shift + enter)
         </button>
-        {!configured && <span>guest mode — sign in to save history</span>}
-        {configured && !user && <span>sign in to save this result</span>}
+        {!configured && <span>Guest mode. Sign in to save your history.</span>}
+        {configured && !user && <span>Sign in to save this result</span>}
         {configured && user && (
           <span>
-            {saved ? "saved to history" : "saving…"}
+            {saved ? "Saved to history" : "Saving..."}
             {saved && xpGained > 0 && <span className="text-main"> · +{xpGained} xp</span>}
           </span>
         )}

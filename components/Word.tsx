@@ -10,14 +10,26 @@ interface WordProps {
 }
 
 const caretClass: Record<WordProps["caretStyle"], string> = {
-  line: "border-l-2 border-caret",
-  block: "bg-caret/60 w-[0.6ch]",
-  underline: "border-b-2 border-caret w-[0.6ch]",
+  line: "w-0 border-l-2 border-caret",
+  block: "w-full bg-caret/40 rounded-sm",
+  underline: "w-full border-b-2 border-caret",
 };
+
+// DM Sans is proportional, so the caret can't be positioned in `ch`: it is
+// rendered inside the character it sits before (or after the last one).
+function Caret({ style, end }: { style: WordProps["caretStyle"]; end?: boolean }) {
+  return (
+    <span
+      className={`absolute inset-y-0 pointer-events-none animate-pulse ${end ? "right-0" : "left-0"} ${caretClass[style]}`}
+      aria-hidden="true"
+    />
+  );
+}
 
 function WordImpl({ target, typed, isCurrent, isDone, blindMode, caretStyle }: WordProps) {
   const chars = target.split("");
   const extra = typed.length > target.length ? typed.slice(target.length) : "";
+  const caretAt = typed.length;
 
   return (
     <span
@@ -32,19 +44,24 @@ function WordImpl({ target, typed, isCurrent, isDone, blindMode, caretStyle }: W
           const correct = typedCh === ch;
           cls = correct || blindMode ? "text-text" : "text-error";
         }
-        return <span key={i} className={cls}>{ch}</span>;
+        return (
+          <span key={i} className={`relative ${cls}`}>
+            {ch}
+            {isCurrent && caretAt === i && <Caret style={caretStyle} />}
+          </span>
+        );
       })}
-      {extra && !blindMode && <span className="text-error-extra">{extra}</span>}
-
-      {/* One persistent caret per word — always mounted so its `left`
-          transition can animate between character positions instead of
-          teleporting. Built in, not a "smooth caret" toggle. */}
-      <span
-        className={`absolute inset-y-0 pointer-events-none transition-all duration-100 ease-out ${
-          caretClass[caretStyle]
-        } ${isCurrent ? "opacity-100" : "opacity-0"}`}
-        style={{ left: `${typed.length}ch` }}
-      />
+      {extra && !blindMode && (
+        <span className="relative text-error-extra">
+          {extra}
+          {isCurrent && <Caret style={caretStyle} end />}
+        </span>
+      )}
+      {isCurrent && !extra && caretAt >= chars.length && (
+        <span className="relative w-[0.5ch]">
+          <Caret style={caretStyle} />
+        </span>
+      )}
     </span>
   );
 }

@@ -69,15 +69,16 @@ export default function ProfilePage() {
 
   if (loadedUsername !== username)
     return (
-      <p className="font-test text-sub text-xs tracking-[0.15em] uppercase text-center py-14">
-        reading signal…
+      <p className="py-24 text-center text-sub" aria-busy="true">
+        Loading profile...
       </p>
     );
   if (!profile)
     return (
-      <p className="font-test text-sub text-xs tracking-[0.15em] uppercase text-center py-14">
-        no signal — user not found
-      </p>
+      <div className="py-24 text-center">
+        <p className="font-display text-3xl font-bold text-text">User not found</p>
+        <p className="mt-2 text-sub">Check the username and try again.</p>
+      </div>
     );
 
   const maxBest = Math.max(...bests.map((b) => b.bestWpm), 1);
@@ -86,79 +87,58 @@ export default function ProfilePage() {
   const avgAcc = recent.length > 0 ? Math.round(recent.reduce((s, r) => s + r.accuracy, 0) / recent.length) : null;
   const memberSince = profile.createdAt ? formatDate(profile.createdAt.toDate()) : null;
 
+  const stats = [
+    { icon: ListChecks, label: "Tests taken", value: String(profile.testsCompleted ?? 0) },
+    { icon: Timer, label: "Time typed", value: formatDuration(profile.totalTimeSeconds ?? 0) },
+    { icon: Flame, label: "Current streak", value: `${profile.currentStreak ?? 0}d`, hot: Boolean(profile.currentStreak) },
+    { icon: Trophy, label: "Longest streak", value: `${profile.longestStreak ?? 0}d` },
+  ];
+
   return (
     <motion.div
       initial="hidden"
       animate="show"
       variants={staggerContainer}
-      className="flex flex-col gap-10 max-w-3xl mx-auto py-14 w-full"
+      className="mx-auto grid w-full max-w-6xl gap-8 py-12 sm:py-16 lg:grid-cols-[22rem_1fr] lg:items-start"
     >
-      {/* Spec plate — identity read as an instrument's ID stamp, peak wpm
-          read off a needle sweep instead of a flat digit. */}
-      <motion.div variants={fadeUp}>
-        <Panel className="flex flex-wrap items-center gap-6 sm:gap-10 px-6 py-6">
-          <Avatar src={profile.photoURL} label={profile.username} size={64} />
-          <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-            <h1 className="font-display text-4xl sm:text-5xl text-main tracking-tight truncate leading-none">
-              {profile.username}
-            </h1>
-            <div className="font-test flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-[0.15em] uppercase text-sub">
-              {memberSince && <span>racing since {memberSince}</span>}
-              <span>{bests.length} channel{bests.length === 1 ? "" : "s"} calibrated</span>
-              {avgAcc !== null && <span>{avgAcc}% recent accuracy</span>}
+      <motion.aside variants={fadeUp} className="flex flex-col gap-4 lg:sticky lg:top-8">
+        <Panel className="flex flex-col items-start gap-6 p-7">
+          <div className="flex items-center gap-4 min-w-0 w-full">
+            <Avatar src={profile.photoURL} label={profile.username} size={72} />
+            <div className="min-w-0">
+              <h1 className="font-display truncate text-3xl font-extrabold leading-tight tracking-tight text-text">
+                {profile.username}
+              </h1>
+              <p className="text-sm text-sub">
+                {memberSince ? `Member since ${memberSince}` : "Member"}
+                {avgAcc !== null && `, ${avgAcc}% recent accuracy`}
+              </p>
             </div>
           </div>
           <LevelBadge xp={profile.xp ?? 0} />
-          <Gauge value={peak} max={gaugeMax} />
+          <div className="self-center">
+            <Gauge value={peak} max={gaugeMax} />
+          </div>
         </Panel>
-      </motion.div>
+        <div className="grid grid-cols-2 gap-3">
+          {stats.map((st) => (
+            <Panel key={st.label} className="flex flex-col gap-2 p-4">
+              <span className="flex items-center gap-1.5 text-xs text-sub">
+                <st.icon size={13} aria-hidden="true" className={st.hot ? "text-main" : ""} />
+                {st.label}
+              </span>
+              <span className="font-display text-2xl font-bold leading-none tabular-nums text-text">{st.value}</span>
+            </Panel>
+          ))}
+        </div>
+      </motion.aside>
 
-      <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Panel className="font-test flex flex-col gap-1.5 px-4 py-3.5">
-          <span className="flex items-center gap-1.5 text-sub text-[10px] tracking-[0.15em] uppercase">
-            <ListChecks size={12} aria-hidden="true" />
-            tests taken
-          </span>
-          <span className="font-display text-2xl text-text tabular-nums leading-none">
-            {profile.testsCompleted ?? 0}
-          </span>
-        </Panel>
-        <Panel className="font-test flex flex-col gap-1.5 px-4 py-3.5">
-          <span className="flex items-center gap-1.5 text-sub text-[10px] tracking-[0.15em] uppercase">
-            <Timer size={12} aria-hidden="true" />
-            time typed
-          </span>
-          <span className="font-display text-2xl text-text tabular-nums leading-none">
-            {formatDuration(profile.totalTimeSeconds ?? 0)}
-          </span>
-        </Panel>
-        <Panel className="font-test flex flex-col gap-1.5 px-4 py-3.5">
-          <span className="flex items-center gap-1.5 text-sub text-[10px] tracking-[0.15em] uppercase">
-            <Flame size={12} aria-hidden="true" className={profile.currentStreak ? "text-main" : ""} />
-            current streak
-          </span>
-          <span className="font-display text-2xl text-text tabular-nums leading-none">
-            {profile.currentStreak ?? 0}
-            <span className="text-xs text-sub ml-1.5 font-test">day{profile.currentStreak === 1 ? "" : "s"}</span>
-          </span>
-        </Panel>
-        <Panel className="font-test flex flex-col gap-1.5 px-4 py-3.5">
-          <span className="flex items-center gap-1.5 text-sub text-[10px] tracking-[0.15em] uppercase">
-            <Trophy size={12} aria-hidden="true" />
-            longest streak
-          </span>
-          <span className="font-display text-2xl text-text tabular-nums leading-none">
-            {profile.longestStreak ?? 0}
-            <span className="text-xs text-sub ml-1.5 font-test">day{profile.longestStreak === 1 ? "" : "s"}</span>
-          </span>
-        </Panel>
-      </motion.div>
-
+      <div className="flex min-w-0 flex-col gap-10">
       <motion.div variants={fadeUp}>
         <SectionLabel>personal bests</SectionLabel>
         {bests.length === 0 && (
-          <Panel className="font-test flex items-center justify-center text-sub text-xs tracking-[0.1em] uppercase py-6 px-4">
-            channel idle — no results logged yet
+          <Panel className="flex items-center justify-center px-4 py-8 text-sub">
+            No results yet. Take a test to set your first best.
           </Panel>
         )}
         <motion.div
@@ -167,23 +147,20 @@ export default function ProfilePage() {
           variants={staggerContainer}
           className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         >
-          {bests.map((b, i) => {
+          {bests.map((b) => {
             const [mode, size] = splitConfigKey(b.configKey);
             return (
               <motion.div key={b.configKey} variants={fadeUp}>
-                <Panel className="font-test flex flex-col gap-3 px-4 py-3.5">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-main text-[10px] tracking-[0.15em]">CH{String(i + 1).padStart(2, "0")}</span>
-                    <span className="text-sub text-[10px] tracking-[0.1em] truncate">
-                      {mode}
-                      {size && <> · {size}</>}
-                    </span>
-                  </div>
+                <Panel className="flex flex-col gap-3 p-5">
+                  <span className="text-sm font-medium capitalize text-sub">
+                    {mode.toLowerCase()}
+                    {size && ` ${size}`}
+                  </span>
                   <span className="font-display text-3xl text-text tabular-nums leading-none">
                     {b.bestWpm}
                     <span className="text-xs text-sub ml-1.5 font-test">wpm</span>
                   </span>
-                  <SignalBar value={b.bestWpm} max={maxBest} graduated />
+                  <SignalBar value={b.bestWpm} max={maxBest} />
                 </Panel>
               </motion.div>
             );
@@ -193,9 +170,9 @@ export default function ProfilePage() {
 
       <motion.div variants={fadeUp}>
         <SectionLabel>recent tests</SectionLabel>
-        <Panel className="font-test flex flex-col text-sm">
+        <Panel className="flex flex-col overflow-hidden text-sm">
           {recent.length === 0 && (
-            <p className="text-sub text-xs tracking-[0.1em] uppercase py-6 px-4 text-center">log empty — take a test to populate</p>
+            <p className="px-4 py-8 text-center text-sub">No tests yet.</p>
           )}
           <motion.div initial="hidden" animate="show" variants={staggerContainer}>
             {recent.map((r) => {
@@ -212,7 +189,7 @@ export default function ProfilePage() {
 
                   <div className="flex-1 flex flex-col gap-1 min-w-0">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-sub uppercase tracking-[0.08em]">
+                      <span className="text-sub">
                         {r.mode} {r.config.duration ?? r.config.wordCount}
                       </span>
                       <span className="text-sub/70 tabular-nums">{r.accuracy}% acc</span>
@@ -233,7 +210,7 @@ export default function ProfilePage() {
                     ) : (
                       <Minus size={12} aria-hidden="true" />
                     )}
-                    {best ? `${delta > 0 ? "+" : ""}${delta}` : "—"}
+                    {best ? `${delta > 0 ? "+" : ""}${delta}` : "-"}
                   </span>
 
                   <span className="text-sub/60 text-xs w-16 text-right shrink-0 tabular-nums">
@@ -248,9 +225,9 @@ export default function ProfilePage() {
 
       <motion.div variants={fadeUp}>
         <SectionLabel>race history</SectionLabel>
-        <Panel className="font-test flex flex-col text-sm">
+        <Panel className="flex flex-col overflow-hidden text-sm">
           {races.length === 0 && (
-            <p className="text-sub text-xs tracking-[0.1em] uppercase py-6 px-4 text-center">no races run yet</p>
+            <p className="px-4 py-8 text-center text-sub">No races yet. Invite a friend from your account page.</p>
           )}
           <motion.div initial="hidden" animate="show" variants={staggerContainer}>
             {races.map((r) => (
@@ -263,12 +240,12 @@ export default function ProfilePage() {
 
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-sub uppercase tracking-[0.08em] flex items-center gap-1">
+                    <span className="text-sub flex items-center gap-1">
                       <Swords size={11} aria-hidden="true" />
                       vs {r.opponent.username}
                     </span>
                     <span className="text-sub/70 tabular-nums">
-                      {r.self.wpm} wpm · {r.self.accuracy}% acc
+                      {r.self.wpm} wpm, {r.self.accuracy}% acc
                     </span>
                   </div>
                   <Oscilloscope samples={r.self.wpmTimeline ?? []} height={26} strokeWidth={1.25} />
@@ -280,7 +257,7 @@ export default function ProfilePage() {
                 </span>
 
                 <span
-                  className={`text-xs w-12 text-right shrink-0 uppercase tracking-[0.08em] ${
+                  className={`text-xs w-12 text-right shrink-0 ${
                     r.won ? "text-main" : "text-sub/50"
                   }`}
                 >
@@ -291,6 +268,7 @@ export default function ProfilePage() {
           </motion.div>
         </Panel>
       </motion.div>
+      </div>
     </motion.div>
   );
 }

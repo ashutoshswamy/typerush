@@ -1,5 +1,6 @@
 "use client";
 
+import { notify } from "@/lib/toast";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Swords } from "lucide-react";
@@ -61,7 +62,7 @@ function InviteRow({
       <button
         onClick={onAccept}
         disabled={busy}
-        className="font-test flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] text-main hover:text-text disabled:opacity-40 transition-colors"
+        className="font-test flex items-center gap-1.5 text-[10px] text-main hover:text-text disabled:opacity-40 transition-colors"
       >
         <Swords size={12} aria-hidden="true" />
         {busy ? "joining…" : "accept"}
@@ -69,7 +70,7 @@ function InviteRow({
       <button
         onClick={onDecline}
         disabled={busy}
-        className="flex items-center justify-center w-6 h-6 border border-sub/40 text-sub hover:text-error hover:border-error disabled:opacity-40 transition-colors"
+        className="flex items-center justify-center w-7 h-7 rounded-lg border border-sub/40 text-sub hover:text-error hover:border-error disabled:opacity-40 transition-colors"
         aria-label="decline"
       >
         <X size={12} />
@@ -83,40 +84,38 @@ export function RaceInvitesPanel({ uid, username, photoURL }: { uid: string; use
   const router = useRouter();
   const [invites, setInvites] = useState<RaceInvite[]>([]);
   const [busyRaceId, setBusyRaceId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
+  
   useEffect(() => listenRaceInvites(uid, setInvites), [uid]);
 
   if (invites.length === 0) return null;
 
   async function accept(invite: RaceInvite) {
     if (!user) return;
-    setError(null);
     setBusyRaceId(invite.raceId);
     try {
       await acceptRaceInvite(uid, username, photoURL, invite);
       router.push(`/race/${invite.raceId}`);
     } catch (err) {
       console.error("accept race invite failed:", err);
-      setError(err instanceof Error ? err.message : "Couldn't accept invite");
+      notify.error("Couldn't accept invite", err instanceof Error ? err.message : undefined);
       setBusyRaceId(null);
     }
   }
 
   async function decline(invite: RaceInvite) {
-    setError(null);
     setBusyRaceId(invite.raceId);
     try {
       await declineRaceInvite(uid, invite.raceId);
     } catch (err) {
       console.error("decline race invite failed:", err);
-      setError(err instanceof Error ? err.message : "Couldn't decline invite");
+      notify.error("Couldn't decline invite", err instanceof Error ? err.message : undefined);
     } finally {
       setBusyRaceId(null);
     }
   }
 
   function expire(invite: RaceInvite) {
+    notify.warning("Invite expired", `${invite.fromUsername}'s race invite timed out.`);
     declineRaceInvite(uid, invite.raceId).catch(() => {});
     expireRace(invite.raceId).catch(() => {});
   }
@@ -135,7 +134,6 @@ export function RaceInvitesPanel({ uid, username, photoURL }: { uid: string; use
             onExpire={() => expire(invite)}
           />
         ))}
-        {error && <p className="text-error text-xs">{error}</p>}
       </Panel>
     </div>
   );

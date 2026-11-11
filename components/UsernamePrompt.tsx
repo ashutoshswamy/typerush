@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Panel } from "./Panel";
+import { notify } from "@/lib/toast";
 import { listenUserProfile, setUsername as setUsernameDoc, USERNAME_PATTERN } from "@/lib/firestore";
 
 // Google/GitHub sign-in auto-fills a username from the provider profile —
@@ -14,8 +15,7 @@ export function UsernamePrompt() {
   const { user } = useAuth();
   const [needsUsername, setNeedsUsername] = useState(false);
   const [value, setValue] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+    const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -34,12 +34,12 @@ export function UsernamePrompt() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    setError(null);
     setBusy(true);
     try {
       await setUsernameDoc(user.uid, value.trim());
+      notify.success("Username set", `You are ${value.trim()}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      notify.error("Couldn't save username", err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(false);
     }
@@ -61,7 +61,7 @@ export function UsernamePrompt() {
             <form onSubmit={submit} className="flex flex-col gap-2">
               <input
                 autoFocus
-                className="bg-sub-alt border border-sub/30 px-3 py-2 text-sm outline-none focus:border-main"
+                className="bg-sub-alt rounded-xl border border-sub/30 px-3 py-2.5 text-sm outline-none focus:border-main"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 pattern="[a-zA-Z0-9_]{3,20}"
@@ -75,12 +75,11 @@ export function UsernamePrompt() {
                 whileTap={{ scale: 0.97 }}
                 type="submit"
                 disabled={busy || !USERNAME_PATTERN.test(value.trim())}
-                className="flex items-center justify-center gap-1.5 bg-main text-bg px-3 py-2 text-xs tracking-[0.15em] uppercase font-medium disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-main text-bg px-3 py-2.5 text-sm font-medium disabled:opacity-50"
               >
                 <Check size={14} aria-hidden="true" />
                 {busy ? "saving…" : "confirm"}
               </motion.button>
-              {error && <p className="text-error text-xs">{error}</p>}
             </form>
           </Panel>
         </motion.div>

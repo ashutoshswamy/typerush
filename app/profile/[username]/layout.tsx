@@ -12,10 +12,13 @@ export async function generateMetadata({
   return {
     title,
     description,
+    robots: { index: false, follow: true }, // client-rendered, thin, unknown users still 200
     alternates: {
       canonical: `/profile/${username}`,
     },
     openGraph: {
+      siteName: "typerush",
+      images: [{ url: "/og-image.jpg", width: 1731, height: 909 }],
       title: `${title} · typerush`,
       description,
       url: `https://typerush.ashutoshswamy.in/profile/${username}`,

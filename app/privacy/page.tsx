@@ -1,26 +1,28 @@
-import { SectionLabel } from "@/components/SectionLabel";
+import { LegalLayout, LegalSection } from "@/components/LegalLayout";
 
+const TOC = [
+  { id: "guest-mode", title: "Guest mode" },
+  { id: "what-we-collect", title: "What we collect" },
+  { id: "what-s-public", title: "What’s public" },
+  { id: "local-storage", title: "Local storage" },
+  { id: "third-parties", title: "Third parties" },
+  { id: "your-controls", title: "Your controls" },
+  { id: "changes", title: "Changes" },
+  { id: "contact", title: "Contact" },
+];
 const LAST_UPDATED = "July 12, 2026";
 
 export default function PrivacyPage() {
   return (
-    <div className="flex flex-col gap-10 max-w-2xl mx-auto py-14 w-full">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl text-main tracking-tight leading-none">Privacy Policy</h1>
-        <p className="font-test text-sub text-[10px] tracking-[0.15em] uppercase">last updated {LAST_UPDATED}</p>
-      </div>
-
-      <div className="flex flex-col gap-8 text-sm text-text/80 leading-relaxed">
-        <section className="flex flex-col gap-2">
-          <SectionLabel>guest mode</SectionLabel>
+    <LegalLayout title="Privacy Policy" updated={LAST_UPDATED} toc={TOC}>
+        <LegalSection id="guest-mode" title="Guest mode">
           <p>
             You can take typing tests without an account. In guest mode, results live only in your browser&rsquo;s
             memory for that session — nothing is sent to our servers or saved anywhere.
           </p>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>what we collect</SectionLabel>
+        <LegalSection id="what-we-collect" title="What we collect">
           <p>If you create an account, we store (via Firebase Authentication and Firestore):</p>
           <ul className="list-disc pl-5 flex flex-col gap-1">
             <li>Your email, or Google/GitHub account ID, name, and profile photo — however you sign up.</li>
@@ -30,60 +32,53 @@ export default function PrivacyPage() {
             <li>Race invites and race results (yours and, denormalized, your opponent&rsquo;s final stats).</li>
             <li>XP and level, computed from your completed tests.</li>
           </ul>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>what&rsquo;s public</SectionLabel>
+        <LegalSection id="what-s-public" title="What’s public">
           <p>
             Your username, profile photo, personal bests, recent tests, race history, XP/level, and leaderboard
             standing are visible to anyone on your public profile page and the leaderboard — that&rsquo;s the
             point of a leaderboard. We don&rsquo;t show your email or auth provider publicly.
           </p>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>local storage</SectionLabel>
+        <LegalSection id="local-storage" title="Local storage">
           <p>
             Your theme and typing preferences (caret style, sound, blind mode) are saved in your browser&rsquo;s
             localStorage so they persist across visits. This never leaves your device.
           </p>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>third parties</SectionLabel>
+        <LegalSection id="third-parties" title="Third parties">
           <p>
             Authentication and data storage run on Firebase (Google). If you sign in with Google or GitHub,
             those providers share your basic profile info with us per their own privacy policies. We don&rsquo;t
             sell your data or share it with advertisers.
           </p>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>your controls</SectionLabel>
+        <LegalSection id="your-controls" title="Your controls">
           <p>From the account page you can, at any time:</p>
           <ul className="list-disc pl-5 flex flex-col gap-1">
             <li>Export everything we have on you as a JSON file.</li>
             <li>Wipe test history, personal bests, race history, and reset XP/level — your account and friends stay.</li>
             <li>Delete your account entirely, which removes your profile, test data, and Firebase Auth identity.</li>
           </ul>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>changes</SectionLabel>
+        <LegalSection id="changes" title="Changes">
           <p>This policy may be updated occasionally; the date above reflects the latest revision.</p>
-        </section>
+        </LegalSection>
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>contact</SectionLabel>
+        <LegalSection id="contact" title="Contact">
           <p>
             Questions? Reach out at{" "}
-            <a href="mailto:ashutoshswamy397@gmail.com" className="text-main hover:underline">
+            <a href="mailto:ashutoshswamy397@gmail.com" className="text-main underline underline-offset-2">
               ashutoshswamy397@gmail.com
             </a>
             .
           </p>
-        </section>
-      </div>
-    </div>
+        </LegalSection>
+    </LegalLayout>
   );
 }

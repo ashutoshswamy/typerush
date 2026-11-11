@@ -110,14 +110,14 @@ export function TestArea() {
         <div className="text-3xl text-main tabular-nums font-medium">
           {status !== "idle" ? (timeLeft !== null ? timeLeft : wordsLeft !== null ? wordsLeft : "") : " "}
         </div>
-        <div className="text-[10px] tracking-[0.25em] uppercase text-sub h-3">
+        <div className="text-[10px] text-sub h-3">
           {status !== "idle" ? (mode === "time" ? "sec remaining" : mode === "words" ? "words left" : "") : ""}
         </div>
       </div>
 
       <div
         ref={containerRef}
-        className="relative overflow-hidden text-2xl leading-relaxed select-none w-full"
+        className="font-typing relative overflow-hidden text-2xl leading-relaxed select-none w-full"
         style={{ height: `${LINES_VISIBLE * 2.25}rem` }}
       >
         <div
@@ -145,11 +145,10 @@ export function TestArea() {
           status === "running" ? "opacity-40" : "opacity-100"
         }`}
       >
-        <span className="graticule w-full" />
         <Oscilloscope samples={wpmTimeline} height={40} />
       </div>
 
-      <p className="text-sub text-xs tracking-[0.2em] uppercase">shift+enter — restart</p>
+      <p className="text-sub text-xs">Press shift + enter to restart</p>
     </div>
   );
 }

@@ -9,7 +9,7 @@ interface CheckboxProps {
 
 export function Checkbox({ checked, onChange }: CheckboxProps) {
   return (
-    <span className="relative inline-flex w-3.5 h-3.5 shrink-0">
+    <span className="relative inline-flex w-4 h-4 shrink-0">
       <input
         type="checkbox"
         checked={checked}
@@ -17,7 +17,7 @@ export function Checkbox({ checked, onChange }: CheckboxProps) {
         className="peer absolute inset-0 opacity-0 cursor-pointer"
       />
       <span
-        className={`w-3.5 h-3.5 border flex items-center justify-center transition-colors peer-focus-visible:outline peer-focus-visible:outline-1 peer-focus-visible:outline-main peer-focus-visible:outline-offset-2 ${
+        className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors peer-focus-visible:outline peer-focus-visible:outline-1 peer-focus-visible:outline-main peer-focus-visible:outline-offset-2 ${
           checked ? "bg-main border-main" : "border-sub/40"
         }`}
         aria-hidden="true"

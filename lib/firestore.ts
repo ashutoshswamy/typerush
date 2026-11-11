@@ -243,6 +243,7 @@ export async function getLeaderboard(key: string, count = 50): Promise<Leaderboa
 
 export interface UserDataExport {
   profile: Record<string, unknown> | null;
+  consent: Record<string, unknown> | null;
   testResults: (TestResultInput & { id: string })[];
   personalBests: (Omit<PersonalBest, "configKey"> & { configKey: string })[];
   exportedAt: string;
@@ -251,13 +252,15 @@ export interface UserDataExport {
 // Everything Firestore holds under this uid, as one downloadable snapshot.
 export async function exportUserData(uid: string): Promise<UserDataExport> {
   if (!db) throw new Error("Firestore not configured");
-  const [profileSnap, resultsSnap, bestsSnap] = await Promise.all([
+  const [profileSnap, consentSnap, resultsSnap, bestsSnap] = await Promise.all([
     getDoc(doc(db, "users", uid)),
+    getDoc(doc(db, "users", uid, "private", "consent")),
     getDocs(collection(db, "users", uid, "testResults")),
     getDocs(collection(db, "users", uid, "personalBests")),
   ]);
   return {
     profile: profileSnap.exists() ? profileSnap.data() : null,
+    consent: consentSnap.exists() ? consentSnap.data() : null,
     testResults: resultsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as TestResultInput) })),
     personalBests: bestsSnap.docs.map((d) => ({
       configKey: d.id,
@@ -319,6 +322,7 @@ export async function deleteUserData(uid: string): Promise<void> {
     ...bestsSnap.docs.map((d) => d.ref),
     ...bestsSnap.docs.map((d) => doc(database, "leaderboard", d.id, "entries", uid)),
     ...raceHistorySnap.docs.map((d) => d.ref),
+    doc(database, "users", uid, "private", "consent"),
     doc(database, "users", uid),
   ];
 

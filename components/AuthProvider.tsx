@@ -18,6 +18,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider, githubProvider, firebaseConfigured } from "@/lib/firebase";
 import { deleteUserData, sanitizeUsername } from "@/lib/firestore";
+import { syncConsent } from "@/lib/consent";
 
 interface AuthContextValue {
   user: User | null;
@@ -87,7 +88,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
-      if (u) void ensureUserDoc(u);
+      if (u) {
+        // Record cookie choice + 18+/terms agreement captured on this device.
+        void ensureUserDoc(u)
+          .then(() => syncConsent(u.uid))
+          .catch((err) => console.warn("consent sync failed:", err));
+      }
     });
   }, []);
 

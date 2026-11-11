@@ -25,7 +25,7 @@ export function RaceInviteBell() {
       {count > 0 && (
         <span
           className="absolute -top-1.5 -right-2 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-error text-bg text-[9px] font-bold"
-          style={{ boxShadow: "0 0 4px var(--error)" }}
+         
         >
           {count}
         </span>

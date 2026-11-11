@@ -13,14 +13,14 @@ export function LevelBadge({ xp, size = "md" }: { xp: number; size?: "sm" | "md"
         <span className={`font-display text-main font-bold leading-none ${big ? "text-2xl" : "text-base"}`}>
           lv {level}
         </span>
-        <span className="font-test text-sub text-[10px] tracking-[0.1em] uppercase tabular-nums">
+        <span className="font-test text-sub text-[10px] tabular-nums">
           {into}/{need} xp
         </span>
       </div>
       <div className="h-1 w-full bg-sub-alt overflow-hidden rounded-full">
         <div
           className="h-full bg-main transition-[width] duration-500"
-          style={{ width: `${pct}%`, boxShadow: "0 0 4px var(--main)" }}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>

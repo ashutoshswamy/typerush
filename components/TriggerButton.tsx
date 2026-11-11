@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-// The instrument-panel CTA: a power/trigger switch, not a filled pill.
-// Used for every "start the test" call in the app.
 export function TriggerButton({
   href,
   children,
@@ -16,14 +14,13 @@ export function TriggerButton({
   className?: string;
 }) {
   return (
-    <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className={`inline-flex ${className}`}>
+    <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} className={`inline-flex ${className}`}>
       <Link
         href={href}
-        className="group relative inline-flex items-center gap-3 border-2 border-main px-7 py-3.5 font-test text-xs font-medium tracking-[0.25em] uppercase text-main transition-colors hover:bg-main hover:text-bg"
+        className="group inline-flex items-center gap-2.5 rounded-xl bg-main px-6 py-3.5 text-sm font-semibold text-bg transition-[filter] hover:brightness-110"
       >
-        <span className="w-2 h-2 bg-main transition-colors group-hover:bg-bg" aria-hidden="true" />
         {children}
-        <ChevronRight size={14} aria-hidden="true" />
+        <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </Link>
     </motion.div>
   );

@@ -1,9 +1,8 @@
 import type { Variants, Transition } from "framer-motion";
 
-// Shared framer-motion variants — the declarative, non-orchestrated motion
-// layer used across pages/lists. Timeline-driven reveals (hero sweep,
-// results count-up, oscilloscope draw-in) stay on GSAP, see Results.tsx /
-// Oscilloscope.tsx / app/page.tsx.
+// Shared framer-motion variants and easing. Timeline-style reveals (results
+// count-up, oscilloscope draw-in, gauge sweep) use framer-motion's `animate()`
+// inside effects, see Results.tsx / Oscilloscope.tsx / Gauge.tsx.
 export const EASE: Transition["ease"] = [0.16, 1, 0.3, 1];
 
 export const fadeUp: Variants = {

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, IBM_Plex_Mono, Big_Shoulders } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { Toaster } from "sileo";
+import "sileo/styles.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -7,25 +9,20 @@ import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { UsernamePrompt } from "@/components/UsernamePrompt";
+import { CookieConsent } from "@/components/CookieConsent";
 
-// UI chrome — deliberately quiet, meant to recede.
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Body, UI and the typing area: one quiet, open sans.
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-// The typing area's own face — engineered, legible at speed. The signature.
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+// Headlines and result numbers only: characterful, tightly set.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-// Results/headings only — tall, condensed, reads like a scoreboard digit.
-const bigShoulders = Big_Shoulders({
-  variable: "--font-big-shoulders",
-  subsets: ["latin"],
-  weight: ["600", "700", "900"],
+  weight: ["500", "600", "700", "800"],
 });
 
 const SITE_URL = "https://typerush.ashutoshswamy.in";
@@ -62,13 +59,13 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_US",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: SITE_TITLE }],
+    images: [{ url: "/og-image.jpg", width: 1731, height: 909, alt: SITE_TITLE }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -101,7 +98,16 @@ const STRUCTURED_DATA = {
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  author: { "@type": "Person", name: "Ashutosh Swamy" },
+  image: `${SITE_URL}/og-image.jpg`,
+  author: {
+    "@type": "Person",
+    name: "Ashutosh Swamy",
+    sameAs: [
+      "https://github.com/ashutoshswamy",
+      "https://linkedin.com/in/ashutoshswamy",
+      "https://x.com/ashutoshswamy_",
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -113,11 +119,11 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="ayu"
-      className={`${geistSans.variable} ${plexMono.variable} ${bigShoulders.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${bricolage.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
-        <div className="grid-backdrop fixed inset-0 pointer-events-none z-0" aria-hidden="true" />
+        <div className="ambient fixed inset-0 pointer-events-none z-0" aria-hidden="true" />
         <AuthProvider>
           <ThemeProvider>
             <UsernamePrompt />
@@ -126,6 +132,8 @@ export default function RootLayout({
               <PageTransition>{children}</PageTransition>
             </main>
             <Footer />
+            <CookieConsent />
+            <Toaster position="top-center" theme="dark" offset={{ top: 16 }} />
           </ThemeProvider>
         </AuthProvider>
       </body>

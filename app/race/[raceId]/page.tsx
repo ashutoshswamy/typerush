@@ -131,16 +131,18 @@ export default function RacePage() {
   if (loading || race === undefined) return null;
   if (!user) {
     return (
-      <p className="font-test text-sub text-xs tracking-[0.15em] uppercase text-center py-24">
-        sign in to join a race
-      </p>
+      <div className="py-24 text-center">
+        <p className="font-display text-3xl font-bold text-text">Sign in to join a race</p>
+        <p className="mt-2 text-sub">Open the account page to sign in.</p>
+      </div>
     );
   }
   if (!race || (user.uid !== race.hostUid && user.uid !== race.guestUid && user.uid !== race.invitedUid)) {
     return (
-      <p className="font-test text-sub text-xs tracking-[0.15em] uppercase text-center py-24">
-        no signal — race not found
-      </p>
+      <div className="py-24 text-center">
+        <p className="font-display text-3xl font-bold text-text">Race not found</p>
+        <p className="mt-2 text-sub">It may have expired, or the link is wrong.</p>
+      </div>
     );
   }
 
@@ -151,11 +153,11 @@ export default function RacePage() {
   const iWon = bothFinished && self && opponent && self.wpm >= opponent.wpm;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-8 w-full max-w-3xl mx-auto py-10">
-      <Panel className="px-6 py-4 flex flex-col gap-4">
-        <div className="font-test flex items-center justify-center gap-2 text-[10px] tracking-[0.25em] uppercase text-sub">
-          <Swords size={13} className="text-main" aria-hidden="true" />
-          race
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-10 sm:py-14">
+      <Panel className="flex flex-col gap-5 p-6 sm:p-7">
+        <div className="flex items-center gap-2 font-display text-xl font-bold text-text">
+          <Swords size={18} className="text-main" aria-hidden="true" />
+          Live race
         </div>
 
         {racers.map((r) => {
@@ -167,7 +169,7 @@ export default function RacePage() {
               <div className="flex-1 flex flex-col gap-1 min-w-0">
                 <div className="flex items-center justify-between text-xs">
                   <span className={`truncate ${isSelf ? "text-main" : "text-text"}`}>{r.username}{isSelf ? " (you)" : ""}</span>
-                  <span className="text-sub tabular-nums">{r.finished ? `finished · ${r.wpm} wpm` : `${r.wpm} wpm`}</span>
+                  <span className="text-sub tabular-nums">{r.finished ? `Finished, ${r.wpm} wpm` : `${r.wpm} wpm`}</span>
                 </div>
                 <div className="h-1.5 w-full bg-sub-alt overflow-hidden rounded-full">
                   <div
@@ -181,18 +183,18 @@ export default function RacePage() {
         })}
 
         {!opponent && race.status === "pending" && (
-          <p className="font-test flex items-center justify-center gap-1.5 text-center text-sub text-xs tracking-[0.1em] uppercase py-2">
-            <Clock size={12} aria-hidden="true" />
-            waiting for opponent to join… invite expires in {waitSeconds}s
+          <p className="flex items-center gap-2 py-1 text-sm text-sub">
+            <Clock size={14} aria-hidden="true" />
+            Waiting for your opponent to join. The invite expires in {waitSeconds}s.
           </p>
         )}
       </Panel>
 
       {bothFinished && self && opponent && (
         <Panel className="px-6 py-5 flex flex-col gap-4">
-          <div className="font-test flex items-center justify-center gap-2 text-sm uppercase tracking-[0.15em]">
+          <div className="font-test flex items-center justify-center gap-2 text-sm">
             <Crown size={16} className={iWon ? "text-main" : "text-sub"} aria-hidden="true" />
-            <span className={iWon ? "text-main" : "text-sub"}>{iWon ? "you won this race" : "opponent won this race"}</span>
+            <span className={iWon ? "text-main" : "text-sub"}>{iWon ? "You won this race" : "Your opponent won this race"}</span>
           </div>
           <div className="grid grid-cols-2 divide-x divide-sub/15">
             {[self, opponent].map((r) => (
@@ -207,15 +209,15 @@ export default function RacePage() {
                 <div className="grid grid-cols-3 gap-3 w-full font-test text-center">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-display text-2xl text-text tabular-nums leading-none">{r.wpm}</span>
-                    <span className="text-sub text-[9px] tracking-[0.1em] uppercase">wpm</span>
+                    <span className="text-xs text-sub">wpm</span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-display text-2xl text-text tabular-nums leading-none">{r.accuracy ?? "—"}</span>
-                    <span className="text-sub text-[9px] tracking-[0.1em] uppercase">acc</span>
+                    <span className="font-display text-2xl text-text tabular-nums leading-none">{r.accuracy ?? "-"}</span>
+                    <span className="text-xs text-sub">accuracy</span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-display text-2xl text-text tabular-nums leading-none">{r.consistency ?? "—"}</span>
-                    <span className="text-sub text-[9px] tracking-[0.1em] uppercase">cons</span>
+                    <span className="font-display text-2xl text-text tabular-nums leading-none">{r.consistency ?? "-"}</span>
+                    <span className="text-xs text-sub">consistency</span>
                   </div>
                 </div>
               </div>
@@ -226,13 +228,13 @@ export default function RacePage() {
 
       {race.status === "active" && configured && (status !== "finished" ? <TestArea /> : <Results />)}
       {race.status === "pending" && opponent && (
-        <p className="font-test text-center text-sub text-xs tracking-[0.15em] uppercase py-10">
-          waiting for race to start…
+        <p className="py-10 text-center text-sub">
+          Waiting for the race to start...
         </p>
       )}
       {race.status === "expired" && (
-        <p className="font-test text-center text-sub text-xs tracking-[0.15em] uppercase py-10">
-          invite expired — nobody joined in time
+        <p className="py-10 text-center text-sub">
+          This invite expired. Nobody joined in time.
         </p>
       )}
     </motion.div>

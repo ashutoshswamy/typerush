@@ -1,5 +1,6 @@
 "use client";
 
+import { notify } from "@/lib/toast";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, UserPlus, Check, X, Trash2, Swords, Timer, Type, Quote, Hash } from "lucide-react";
@@ -87,12 +88,22 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
   }
 
   async function addFriend(target: UserProfile) {
-    await sendFriendRequest(uid, username, photoURL, target.uid);
-    setSentTo((s) => new Set(s).add(target.uid));
+    try {
+      await sendFriendRequest(uid, username, photoURL, target.uid);
+      setSentTo((s) => new Set(s).add(target.uid));
+      notify.success("Request sent", `Waiting on ${target.username}.`);
+    } catch (err) {
+      notify.error("Couldn't send request", err instanceof Error ? err.message : undefined);
+    }
   }
 
   async function accept(request: FriendRequest) {
-    await acceptFriendRequest(uid, username, photoURL, request);
+    try {
+      await acceptFriendRequest(uid, username, photoURL, request);
+      notify.success("Friend added", `You and ${request.fromUsername} are friends.`);
+    } catch (err) {
+      notify.error("Couldn't accept request", err instanceof Error ? err.message : undefined);
+    }
   }
 
   async function inviteToRace(friend: FriendEntry) {
@@ -105,7 +116,10 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
         numbers: raceConfig.numbers,
       });
       const raceId = await createRaceInvite(uid, username, photoURL, friend.uid, raceMode, raceConfig, words);
+      notify.info("Invite sent", `Waiting for ${friend.username} to join.`);
       router.push(`/race/${raceId}`);
+    } catch (err) {
+      notify.error("Couldn't start race", err instanceof Error ? err.message : undefined);
     } finally {
       setInvitingUid(null);
     }
@@ -116,7 +130,7 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
       <div>
         <SectionLabel>find racers</SectionLabel>
         <Panel className="p-4 flex flex-col gap-3">
-          <div className="flex items-center gap-2 border border-sub/25 px-3 py-2">
+          <div className="flex items-center gap-2 rounded-xl border border-sub/25 px-3 py-2">
             <Search size={14} className="text-sub shrink-0" aria-hidden="true" />
             <input
               value={queryStr}
@@ -138,12 +152,12 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
                   <Avatar src={r.photoURL} label={r.username} size={28} />
                   <span className="flex-1 text-sm text-text truncate">{r.username}</span>
                   {isFriend ? (
-                    <span className="text-[10px] uppercase tracking-[0.1em] text-sub">friends</span>
+                    <span className="text-[10px] text-sub">friends</span>
                   ) : (
                     <button
                       onClick={() => confirmAction(`add:${r.uid}`, () => addFriend(r))}
                       disabled={alreadySent}
-                      className={`font-test flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] disabled:text-sub disabled:cursor-default transition-colors ${
+                      className={`font-test flex items-center gap-1.5 text-[10px] disabled:text-sub disabled:cursor-default transition-colors ${
                         armed === `add:${r.uid}` ? "text-main" : "text-sub hover:text-text"
                       }`}
                     >
@@ -168,14 +182,14 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
                 <span className="flex-1 text-sm text-text truncate">{r.fromUsername}</span>
                 <button
                   onClick={() => accept(r)}
-                  className="flex items-center justify-center w-6 h-6 border border-main text-main hover:bg-main hover:text-bg transition-colors"
+                  className="flex items-center justify-center w-7 h-7 rounded-lg border border-main text-main hover:bg-main hover:text-bg transition-colors"
                   aria-label="accept"
                 >
                   <Check size={12} />
                 </button>
                 <button
-                  onClick={() => cancelFriendRequest(uid, r.fromUid)}
-                  className="flex items-center justify-center w-6 h-6 border border-sub/40 text-sub hover:text-error hover:border-error transition-colors"
+                  onClick={() => cancelFriendRequest(uid, r.fromUid).then(() => notify.info("Request declined"))}
+                  className="flex items-center justify-center w-7 h-7 rounded-lg border border-sub/40 text-sub hover:text-error hover:border-error transition-colors"
                   aria-label="decline"
                 >
                   <X size={12} />
@@ -189,7 +203,7 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
       <div>
         <SectionLabel>friends</SectionLabel>
 
-        <Panel className="mb-3 px-4 py-3 flex flex-wrap items-center gap-4 font-test text-[10px] tracking-[0.1em] uppercase text-sub">
+        <Panel className="mb-3 px-4 py-3 flex flex-wrap items-center gap-4 font-test text-[10px] text-sub">
           <span className="text-sub/70">race settings</span>
           {(["time", "words"] as TestMode[]).map((m) => (
             <button
@@ -250,20 +264,20 @@ export function FriendsPanel({ uid, username, photoURL }: { uid: string; usernam
               <button
                 onClick={() => inviteToRace(f)}
                 disabled={invitingUid === f.uid}
-                className="font-test flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] text-main hover:text-text disabled:text-sub transition-colors"
+                className="font-test flex items-center gap-1.5 text-[10px] text-main hover:text-text disabled:text-sub transition-colors"
               >
                 <Swords size={12} aria-hidden="true" />
                 {invitingUid === f.uid ? "inviting…" : "race"}
               </button>
               <button
-                onClick={() => confirmAction(`remove:${f.uid}`, () => removeFriend(uid, f.uid))}
+                onClick={() => confirmAction(`remove:${f.uid}`, () => removeFriend(uid, f.uid).then(() => notify.info("Friend removed")))}
                 className={`flex items-center gap-1 transition-colors ${
                   armed === `remove:${f.uid}` ? "text-error" : "text-sub hover:text-error"
                 }`}
                 aria-label="remove friend"
               >
                 {armed === `remove:${f.uid}` && (
-                  <span className="font-test text-[10px] uppercase tracking-[0.1em]">confirm?</span>
+                  <span className="font-test text-[10px]">confirm?</span>
                 )}
                 <Trash2 size={13} />
               </button>

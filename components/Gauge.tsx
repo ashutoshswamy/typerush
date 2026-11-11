@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { useEffect, useMemo, useRef } from "react";
+import { animate as tween } from "framer-motion";
 
 const START = -225; // bottom-left, degrees
 const SWEEP = 270; // clockwise to bottom-right
@@ -29,7 +28,6 @@ function arcPath(fromDeg: number, toDeg: number, radius = R) {
 // test already invites ("how fast"). Ticks mark quarters of the range;
 // the needle and arc fill sweep in once on mount, then sit still.
 export function Gauge({ value, max, label = "peak wpm" }: { value: number; max: number; label?: string }) {
-  const rootRef = useRef<HTMLDivElement>(null);
   const fillRef = useRef<SVGPathElement>(null);
   const needleRef = useRef<SVGLineElement>(null);
   const readoutRef = useRef<SVGTextElement>(null);
@@ -39,44 +37,30 @@ export function Gauge({ value, max, label = "peak wpm" }: { value: number; max: 
   const fullPath = arcPath(START, START + SWEEP);
   const ticks = useMemo(() => [0, 0.25, 0.5, 0.75, 1], []);
 
-  useGSAP(
-    () => {
-      const fill = fillRef.current;
-      const needle = needleRef.current;
-      if (!fill || !needle) return;
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const length = fill.getTotalLength();
-
-      if (reduced) {
-        gsap.set(fill, { strokeDasharray: length, strokeDashoffset: length * (1 - t) });
-        gsap.set(needle, { rotation: endDeg - START, transformOrigin: `${CX}px ${CY}px` });
-        if (readoutRef.current) readoutRef.current.textContent = String(value);
-        return;
-      }
-
-      gsap.set(fill, { strokeDasharray: length, strokeDashoffset: length });
-      gsap.set(needle, { rotation: 0, transformOrigin: `${CX}px ${CY}px` });
-
-      const counter = { v: 0 };
-      const tl = gsap.timeline({ delay: 0.2, defaults: { duration: 1.1, ease: "power3.out" } });
-      tl.to(fill, { strokeDashoffset: length * (1 - t) }, 0)
-        .to(needle, { rotation: endDeg - START }, 0)
-        .to(
-          counter,
-          {
-            v: value,
-            onUpdate: () => {
-              if (readoutRef.current) readoutRef.current.textContent = String(Math.round(counter.v));
-            },
-          },
-          0
-        );
-    },
-    { dependencies: [value, max], scope: rootRef }
-  );
+  // One eased 0..1 progress drives the arc fill, needle and readout together.
+  useEffect(() => {
+    const fill = fillRef.current;
+    const needle = needleRef.current;
+    const readout = readoutRef.current;
+    if (!fill || !needle) return;
+    const length = fill.getTotalLength();
+    fill.style.strokeDasharray = String(length);
+    const render = (p: number) => {
+      fill.style.strokeDashoffset = String(length * (1 - t * p));
+      needle.setAttribute("transform", `rotate(${START + (endDeg - START) * p} ${CX} ${CY})`);
+      if (readout) readout.textContent = String(Math.round(value * p));
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      render(1);
+      return;
+    }
+    render(0);
+    const controls = tween(0, 1, { duration: 1.1, delay: 0.2, ease: [0.22, 1, 0.36, 1], onUpdate: render });
+    return () => controls.stop();
+  }, [value, max, t, endDeg]);
 
   return (
-    <div ref={rootRef} className="relative shrink-0" style={{ width: VB_W, height: VB_H }}>
+    <div className="relative shrink-0" style={{ width: VB_W, height: VB_H }}>
       <svg viewBox={`0 0 ${VB_W} ${VB_H}`} width={VB_W} height={VB_H} aria-hidden="true">
         <path d={fullPath} fill="none" stroke="var(--sub)" strokeOpacity="0.25" strokeWidth="6" strokeLinecap="round" />
         <path ref={fillRef} d={fullPath} fill="none" stroke="var(--main)" strokeWidth="6" strokeLinecap="round" />
@@ -108,7 +92,6 @@ export function Gauge({ value, max, label = "peak wpm" }: { value: number; max: 
           stroke="var(--text)"
           strokeWidth="2"
           strokeLinecap="round"
-          style={{ transform: `rotate(${START}deg)`, transformOrigin: `${CX}px ${CY}px` }}
         />
         <circle cx={CX} cy={CY} r="3" fill="var(--text)" />
 
@@ -122,7 +105,7 @@ export function Gauge({ value, max, label = "peak wpm" }: { value: number; max: 
         <text ref={readoutRef} x={CX} y={CY + 30} textAnchor="middle" fontSize="30" fontWeight="700" fill="var(--main)" className="font-display">
           0
         </text>
-        <text x={CX} y={CY + 44} textAnchor="middle" fontSize="8" letterSpacing="1.5" fill="var(--sub)" className="font-test uppercase">
+        <text x={CX} y={CY + 44} textAnchor="middle" fontSize="8" letterSpacing="1.5" fill="var(--sub)" className="font-test">
           {label}
         </text>
       </svg>

@@ -3,7 +3,8 @@ import type { MetadataRoute } from "next";
 const SITE_URL = "https://typerush.ashutoshswamy.in";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
+  // Bump when content materially changes; new Date() would fake freshness every build.
+  const lastModified = new Date("2026-11-11");
   return [
     {
       url: SITE_URL,

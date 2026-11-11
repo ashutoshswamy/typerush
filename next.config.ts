@@ -4,9 +4,11 @@ import type { NextConfig } from "next";
 // https + websocket, Google/GitHub OAuth popups, and avatar images hosted
 // by Google/GitHub. next/font self-hosts fonts at build time, so no
 // external font origins are needed.
+const isDev = process.env.NODE_ENV !== "production";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://apis.google.com",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://apis.google.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.googleusercontent.com",
   "font-src 'self' data:",

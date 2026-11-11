@@ -9,6 +9,8 @@ import { useAuth } from "./AuthProvider";
 import { listenUserProfile, type UserProfile } from "@/lib/firestore";
 import { LevelBadge } from "./LevelBadge";
 import { RaceInviteBell } from "./RaceInviteBell";
+import { notify } from "@/lib/toast";
+import { Logo } from "./Logo";
 
 function NavLink({
   href,
@@ -18,20 +20,24 @@ function NavLink({
 }: {
   href: string;
   active: boolean;
-  highlight?: boolean; // always main-colored regardless of route, e.g. the primary "type" CTA
+  highlight?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className={`relative flex items-center gap-1.5 py-1 transition-colors ${highlight || active ? "text-main" : "hover:text-text"}`}>
-      {children}
+    <Link
+      href={href}
+      className={`relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+        highlight || active ? "text-main" : "text-sub hover:text-text"
+      }`}
+    >
       {active && (
         <motion.span
-          layoutId="nav-underline"
-          className="absolute -bottom-1 left-0 right-0 h-px bg-main"
-          style={{ boxShadow: "0 0 4px var(--main)" }}
+          layoutId="nav-pill"
+          className="absolute inset-0 rounded-full bg-main/12"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
+      <span className="relative flex items-center gap-1.5">{children}</span>
     </Link>
   );
 }
@@ -51,47 +57,46 @@ export function NavBar() {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-4 text-xs tracking-[0.15em] uppercase text-sub"
+      className="relative z-20 flex h-16 items-center justify-between gap-3 px-4 sm:px-6"
     >
-      <Link href="/" className="font-display flex items-center gap-2.5 text-main font-bold tracking-[0.1em] normal-case text-base shrink-0">
-        <span
-          className="w-1.5 h-1.5 rounded-full bg-main animate-pulse"
-          style={{ boxShadow: "0 0 6px var(--main)" }}
-          aria-hidden="true"
-        />
-        typerush
-      </Link>
-      <nav className="flex items-center gap-3 sm:gap-6">
+      <Logo />
+      <nav className="flex items-center gap-0.5 sm:gap-1">
         <NavLink href="/type" active={pathname === "/type"} highlight>
-          <Keyboard size={14} aria-hidden="true" />
+          <Keyboard size={15} aria-hidden="true" />
           <span className="hidden sm:inline">type</span>
         </NavLink>
         <NavLink href="/leaderboard" active={pathname === "/leaderboard"}>
-          <Trophy size={14} aria-hidden="true" />
+          <Trophy size={15} aria-hidden="true" />
           <span className="hidden sm:inline">leaderboard</span>
         </NavLink>
         {configured && user && profile && (
           <NavLink href={`/profile/${profile.username}`} active={pathname.startsWith("/profile")}>
-            <User size={14} aria-hidden="true" />
+            <User size={15} aria-hidden="true" />
             <span className="hidden sm:inline">profile</span>
           </NavLink>
         )}
         <NavLink href="/account" active={pathname === "/account"}>
-          <Settings size={14} aria-hidden="true" />
+          <Settings size={15} aria-hidden="true" />
           <span className="hidden sm:inline">account</span>
         </NavLink>
         {configured && user && (
           <>
             <RaceInviteBell />
-            <LevelBadge xp={profile?.xp ?? 0} size="sm" />
-            <button onClick={() => signOut()} className="flex items-center gap-1.5 hover:text-text transition-colors">
-              <LogOut size={14} aria-hidden="true" />
+            <span className="hidden sm:block mx-2">
+              <LevelBadge xp={profile?.xp ?? 0} size="sm" />
+            </span>
+            <button
+              onClick={() => {
+                signOut().then(() => notify.info("Signed out", "See you next run."));
+              }}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-sub hover:text-text transition-colors"
+            >
+              <LogOut size={15} aria-hidden="true" />
               <span className="hidden sm:inline">sign out</span>
             </button>
           </>
         )}
       </nav>
-      <span className="graticule absolute bottom-0 left-0 right-0" aria-hidden="true" />
     </motion.header>
   );
 }
