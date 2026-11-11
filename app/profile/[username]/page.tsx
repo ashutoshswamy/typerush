@@ -183,7 +183,7 @@ export default function ProfilePage() {
                 <motion.div
                   key={r.id}
                   variants={fadeUp}
-                  className="flex items-center gap-4 text-text border-b border-sub/15 last:border-b-0 px-4 py-3"
+                  className="flex items-center gap-2.5 text-text border-b border-sub/15 last:border-b-0 px-3 py-3 sm:gap-4 sm:px-4"
                 >
                   <span className="text-main w-12 text-right tabular-nums text-base font-display">{r.wpmNet}</span>
 
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                   </div>
 
                   <span
-                    className={`flex items-center gap-1 w-16 justify-end text-xs tabular-nums shrink-0 ${
+                    className={`hidden sm:flex items-center gap-1 w-16 justify-end text-xs tabular-nums shrink-0 ${
                       delta > 0 ? "text-main" : delta < 0 ? "text-sub/70" : "text-sub/50"
                     }`}
                     title={best ? "vs personal best" : "no best on record yet"}
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                     {best ? `${delta > 0 ? "+" : ""}${delta}` : "-"}
                   </span>
 
-                  <span className="text-sub/60 text-xs w-16 text-right shrink-0 tabular-nums">
+                  <span className="hidden min-[420px]:block text-sub/60 text-xs w-16 text-right shrink-0 tabular-nums">
                     {formatDate(r.createdAt.toDate())}
                   </span>
                 </motion.div>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
               <motion.div
                 key={r.raceId}
                 variants={fadeUp}
-                className="flex items-center gap-4 text-text border-b border-sub/15 last:border-b-0 px-4 py-3"
+                className="flex items-center gap-2.5 text-text border-b border-sub/15 last:border-b-0 px-3 py-3 sm:gap-4 sm:px-4"
               >
                 <Crown size={16} className={r.won ? "text-main shrink-0" : "text-sub/40 shrink-0"} aria-hidden="true" />
 
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Avatar src={r.opponent.photoURL} label={r.opponent.username} size={26} />
-                <span className="text-sub/60 text-xs w-14 text-right shrink-0 tabular-nums">
+                <span className="hidden min-[420px]:block text-sub/60 text-xs w-14 text-right shrink-0 tabular-nums">
                   {r.opponent.wpm} wpm
                 </span>
 

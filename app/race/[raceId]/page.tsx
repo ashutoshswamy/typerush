@@ -196,9 +196,9 @@ export default function RacePage() {
             <Crown size={16} className={iWon ? "text-main" : "text-sub"} aria-hidden="true" />
             <span className={iWon ? "text-main" : "text-sub"}>{iWon ? "You won this race" : "Your opponent won this race"}</span>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-sub/15">
+          <div className="grid grid-cols-1 gap-5 divide-y divide-sub/15 sm:grid-cols-2 sm:gap-0 sm:divide-y-0 sm:divide-x">
             {[self, opponent].map((r) => (
-              <div key={r.uid} className="flex flex-col items-center gap-3 px-4">
+              <div key={r.uid} className="flex flex-col items-center gap-3 px-4 pt-5 first:pt-0 sm:pt-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar src={r.photoURL} label={r.username} size={22} />
                   <span className={`font-test text-xs truncate ${r.uid === user.uid ? "text-main" : "text-text"}`}>

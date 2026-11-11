@@ -97,7 +97,7 @@ function LeaderboardTable({ mode, size }: { mode: TestMode; size: number }) {
         <motion.div key={e.uid} variants={fadeUp}>
           <Link
             href={`/profile/${e.username}`}
-            className="surface flex items-center gap-4 px-5 py-3.5 transition-colors hover:border-main/50"
+            className="surface flex items-center gap-2.5 px-3 py-3.5 sm:gap-4 sm:px-5 transition-colors hover:border-main/50"
           >
             <span className="w-7 text-center font-display text-lg font-bold tabular-nums text-sub">{i + 2}</span>
             <Avatar src={e.photoURL} label={e.username} size={36} />
@@ -105,7 +105,7 @@ function LeaderboardTable({ mode, size }: { mode: TestMode; size: number }) {
             <span className="rounded-full bg-main/12 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-main">
               Lv {levelFromXp(e.xp ?? 0)}
             </span>
-            <span className="w-24 text-right font-display text-2xl font-bold tabular-nums text-text">
+            <span className="w-20 text-right font-display text-xl sm:w-24 sm:text-2xl font-bold tabular-nums text-text">
               {e.wpm}
               <span className="ml-1 text-xs font-medium text-sub">wpm</span>
             </span>

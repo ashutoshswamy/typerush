@@ -26,7 +26,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`relative flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3 ${
         highlight || active ? "text-main" : "text-sub hover:text-text"
       }`}
     >
@@ -59,7 +59,7 @@ export function NavBar() {
       transition={{ duration: 0.4 }}
       className="relative z-20 flex h-16 items-center justify-between gap-3 px-4 sm:px-6"
     >
-      <Logo />
+      <Logo textClassName="hidden min-[420px]:inline text-xl" />
       <nav className="flex items-center gap-0.5 sm:gap-1">
         <NavLink href="/type" active={pathname === "/type"} highlight>
           <Keyboard size={15} aria-hidden="true" />
@@ -89,7 +89,7 @@ export function NavBar() {
               onClick={() => {
                 signOut().then(() => notify.info("Signed out", "See you next run."));
               }}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-sub hover:text-text transition-colors"
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-sub hover:text-text transition-colors sm:px-3"
             >
               <LogOut size={15} aria-hidden="true" />
               <span className="hidden sm:inline">sign out</span>

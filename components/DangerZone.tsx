@@ -243,7 +243,7 @@ export function DangerZone({ uid, username }: { uid: string; username: string })
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="w-64"
+              className="w-full max-w-64"
             >
               <PasswordInput value={password} onChange={setPassword} placeholder="confirm your password" autoFocus />
             </motion.div>

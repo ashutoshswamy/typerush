@@ -121,7 +121,7 @@ export default function RootLayout({
       data-theme="ayu"
       className={`${dmSans.variable} ${bricolage.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-bg text-text">
+      <body className="min-h-full flex flex-col overflow-x-clip bg-bg text-text">
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
         <div className="ambient fixed inset-0 pointer-events-none z-0" aria-hidden="true" />
         <AuthProvider>
